@@ -1,0 +1,25 @@
+[
+	{
+		"type": "entities",
+		"title": "Settings",
+		"icon": "mdi:chevron-left",
+		"entities": [{
+				"name": "Dark mode",
+				"icon": "mdi:theme-dark",
+				"entity": "settings.dark_mode"
+			},{
+				"name": "Clear cache",
+				"icon": "mdi:test",
+				"entity": "settings.clear cache"
+			},{
+				"name": "Bottom header",
+				"icon": "mdi:test",
+				"entity": "settings.bottom_header"
+			},{
+				"name": "Restart",
+				"icon": "mdi:restart",
+				"entity": "settings.restart"
+			}		
+		]
+	}
+]
