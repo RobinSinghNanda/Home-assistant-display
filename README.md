@@ -5,26 +5,48 @@ A Home Assistant display based on ESP32. It uses Home Assistant's official Webso
 Example mainscreen configuration with a single page. The name and icon can be automatically feteched from Home Assistant if not specfied. 
 ```json
 [{
-   "type": "entities",
    "entities": [
-      "light.main_bedroom_light", {
+      {
+         "type": "custom:paper-buttons-row",
+         "buttons": [
+         {
+            "entity": "scene.good_morning",
+            "name": "Sunshine"
+         },
+         {
+            "entity": "scene.good_night",
+            "name": "Bedtime"
+         },
+         {
+            "entity": "scene.going_out",
+            "name": "Lock"
+         },
+         {
+            "entity": "scene.i_am_home",
+            "name": "Home"
+         }
+         ]
+      },{
          "entity":"light.bedroom_light",
          "name": "Light"
       },{
          "entity": "fan.main_bedroom_fan",
          "name": "Fan",
          "icon": "mdi:fan",
-	       "state_color": 0
+	      "state_color": 0
       }, { 
          "entity":"light.main_bedroom_bed_light",
          "name": "Bed"
       }, {
          "entity": "media_player.bedroom_tv",
          "name": "TV",
+	      "icon": "mdi:television"
       }
    ],
-   "title": "Powerstrip6",
-   "state_color": true
+   "show_header_toggle": false,
+   "title": "Bedroom",
+   "icon": "mdi:home-assistant",
+   "type": "entities"
 }]
 ```
 
