@@ -52,4 +52,8 @@ Example mainscreen configuration with a single page. The name and icon can be au
 Screen samples captured from hardware.<br />
 ![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/raw/main/images/main_screen.png?raw=true)
 ![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/blob/main/images/sensors_screen.png?raw=true)
+![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/blob/main/images/light_subscreen.png?raw=true)
+![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/blob/main/images/light_subscreen2.png?raw=true)
+
+
 
