@@ -2,6 +2,13 @@
 
 A Home Assistant display based on ESP32. It uses Home Assistant's official Websockets API to fetech and upload states of the entites. The screens can be configured using lovelace's card json (yml converted to json).
 
+Screen samples captured from hardware.<br />
+![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/raw/main/images/main_screen.png?raw=true)
+![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/blob/main/images/sensors_screen.png?raw=true)
+![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/blob/main/images/light_subscreen.png?raw=true)
+![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/blob/main/images/light_subscreen2.png?raw=true)
+
+
 Example mainscreen configuration with a single page. The name and icon can be automatically feteched from Home Assistant if not specfied. 
 ```json
 [{
@@ -49,11 +56,7 @@ Example mainscreen configuration with a single page. The name and icon can be au
    "type": "entities"
 }]
 ```
-Screen samples captured from hardware.<br />
-![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/raw/main/images/main_screen.png?raw=true)
-![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/blob/main/images/sensors_screen.png?raw=true)
-![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/blob/main/images/light_subscreen.png?raw=true)
-![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/blob/main/images/light_subscreen2.png?raw=true)
+
 
 
 
