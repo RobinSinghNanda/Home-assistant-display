@@ -11,7 +11,7 @@ using namespace websockets;
 
 #define MAX_NUM_ENTITES 40
 #define MAX_NUM_OF_ATTRIBUTES 10
-#define DEBUG_HOME_ASSITANT 1
+#define DEBUG_HOME_ASSITANT 0
 #define REQUEST_TIMOUT 10000
 
 struct HomeAssistantEntityAttribute {

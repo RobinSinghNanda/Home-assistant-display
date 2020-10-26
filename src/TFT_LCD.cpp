@@ -73,6 +73,7 @@ uint32_t buildLightBodyCanvas(TFTConfig * tftConfig, Canvas * bodyCanvas) {
   BaseCardConfig * pageConfig = screenConfig->getCard(tftConfig->curr_page_num);
   LightCardConfig * lightPageConfig = (LightCardConfig *) pageConfig;
   if (String(lightPageConfig->getEntityId()) != "") {
+    Serial.println("Adding light entity");
     String entity = lightPageConfig->getEntityId();
     LightEntityCanvas * lightEntityCanvas = new LightEntityCanvas(bodyCanvas, ID_LIGHT_SWITCH_ENTITY);
     lightEntityCanvas->onStateChange([entity](LightEntityCanvas* canvas, bool state)->bool{
@@ -116,6 +117,7 @@ bool setLightBodyCanvasState(TFTConfig * tftConfig, Canvas * bodyCanvas) {
   BaseCardConfig * pageConfig = screenConfig->getCard(tftConfig->curr_page_num);
   LightCardConfig * lightPageConfig = (LightCardConfig *) pageConfig;
   if (String(lightPageConfig->getEntityId()) != "") {
+    Serial.println("Setting light entity");
     LightEntityCanvas * lightEntityCanvas = (LightEntityCanvas *) bodyCanvas->get(ID_LIGHT_SWITCH_ENTITY);
     String name;
     if (String(lightPageConfig->getTitle()) == "") {
@@ -218,9 +220,6 @@ bool setSwitchBodyCanvasState(TFTConfig * tftConfig, Canvas * bodyCanvas) {
     if (String(switchPageConfig->getTitle()) == "") {
       String name = get_row_attribute(switchPageConfig->getEntityId(), "friendly_name");
       if (name != "") {
-        if (name.length()>15) {
-          name = name.substring(0, 15);
-        }
         name = name;
       } else {
         name = switchPageConfig->getEntityId();
@@ -231,8 +230,6 @@ bool setSwitchBodyCanvasState(TFTConfig * tftConfig, Canvas * bodyCanvas) {
     switchEntityCanvas->setName(name);
     switchEntityCanvas->setIconPath("mdi:lightning-bolt");
     String state = get_row_state(switchPageConfig->getEntityId());
-    String entity = switchPageConfig->getEntityId();
-    
     if (state == "on") {
       switchEntityCanvas->setState(true);
     } else if (state == "off") {
@@ -251,7 +248,17 @@ uint32_t buildFanBodyCanvas(TFTConfig * tftConfig, Canvas * bodyCanvas) {
   if (String(fanPageConfig->getEntityId()) != "") {
     String entity = fanPageConfig->getEntityId();
     FanEntityCanvas * fanEntityCanvas = new FanEntityCanvas(bodyCanvas, ID_FAN_SWITCH_ENTITY);
-    fanEntityCanvas->onStateChange([entity](FanEntityCanvas* canvas, bool state)->bool{
+    fanEntityCanvas->onStateChange([entity](FanEntityCanvas* canvas, bool state)->bool {
+        uint16_t fanSpeed = canvas->getFanSpeed();
+        if (state) {
+          if (fanSpeed == 1) {
+            set_row_attribute(entity, "speed", "low");
+          } else if (fanSpeed == 2) {
+            set_row_attribute(entity, "speed", "medium");
+          } else if (fanSpeed == 3) {
+            set_row_attribute(entity, "speed", "high");
+          }
+        }
         if (state)
           set_row_state(entity, "on");
         else
@@ -561,11 +568,13 @@ uint32_t buildEntitesBodyCanvas (TFTConfig * tftConfig, Canvas * bodyCanvas) {
         }
         if (domain == "light") {
           SwitchEntityRowCanvas * switchEntityRowCanvas = (SwitchEntityRowCanvas *) rowCanvas;
-          auto touchCallback = [tftConfig, entity](Canvas*, TouchEvent event, TouchEventData)->bool{
+          auto touchCallback = [tftConfig, entity, default_row](Canvas*, TouchEvent event, TouchEventData)->bool{
               if (isEvent(event, TouchActionTapped)) {
                 tftConfig->entityScreenConfig->clearCards();
+                String title = default_row->getName();
+                title = (title == "")?"Fan":title;
                 tftConfig->entityScreenConfig->addCard(new LightCardConfig(
-                    entity.c_str(), "Light", "mdi:chevron-left", 1
+                    entity.c_str(), title.c_str(), "mdi:chevron-left", 1
                   ));
                 tftConfig->entityPage = 1;
                 tftConfig->screen_refresh = 1;
@@ -577,11 +586,13 @@ uint32_t buildEntitesBodyCanvas (TFTConfig * tftConfig, Canvas * bodyCanvas) {
           switchEntityRowCanvas->onIconTouch(touchCallback);
         } else if (domain == "fan") {
           SwitchEntityRowCanvas * switchEntityRowCanvas = (SwitchEntityRowCanvas *) rowCanvas;
-          auto touchCallback = [tftConfig, entity](Canvas*, TouchEvent event, TouchEventData)->bool{
+          auto touchCallback = [tftConfig, entity, default_row](Canvas*, TouchEvent event, TouchEventData)->bool{
               if (isEvent(event, TouchActionTapped)) {
                 tftConfig->entityScreenConfig->clearCards();
+                String title = default_row->getName();
+                title = (title == "")?"Fan":title;
                 tftConfig->entityScreenConfig->addCard(new FanCardConfig(
-                    entity.c_str(), "Fan", "mdi:chevron-left", 1
+                    entity.c_str(), title.c_str(), "mdi:chevron-left", 1
                   ));
                 tftConfig->entityPage = 1;
                 tftConfig->screen_refresh = 1;
@@ -593,11 +604,13 @@ uint32_t buildEntitesBodyCanvas (TFTConfig * tftConfig, Canvas * bodyCanvas) {
           switchEntityRowCanvas->onIconTouch(touchCallback);
         } else if ((domain == "switch") || (domain == "media_player") || (domain == "climate")) {
           SwitchEntityRowCanvas * switchEntityRowCanvas = (SwitchEntityRowCanvas *) rowCanvas;
-          auto touchCallback = [tftConfig, entity](Canvas*, TouchEvent event, TouchEventData)->bool{
+          auto touchCallback = [tftConfig, entity, default_row](Canvas*, TouchEvent event, TouchEventData)->bool{
               if (isEvent(event, TouchActionTapped)) {
                 tftConfig->entityScreenConfig->clearCards();
+                String title = default_row->getName();
+                title = (title == "")?"Switch":title;
                 tftConfig->entityScreenConfig->addCard(new SwitchCardConfig(
-                    entity.c_str(), "Switch", "mdi:chevron-left", 1
+                    entity.c_str(), "Switch", "mdi:chevron-left", default_row->getIcon(), 1
                   ));
                 tftConfig->entityPage = 1;
                 tftConfig->screen_refresh = 1;
@@ -675,6 +688,7 @@ uint32_t buildBodyCanvas (TFTConfig * tftConfig, Canvas * bodyCanvas) {
     return buildFanBodyCanvas(tftConfig, bodyCanvas);
   } else {
     Serial.println("Unknown page type");
+    Serial.println(String(pageConfig->getType()));
     return 0;
   }
 }

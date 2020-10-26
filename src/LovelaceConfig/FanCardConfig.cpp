@@ -4,6 +4,7 @@ FanCardConfig::FanCardConfig(const char * entity, const char * title, const char
     strlcpy(this->entity, entity, sizeof(this->entity));
     strlcpy(this->title, title, sizeof(this->title));
     strlcpy(this->icon, icon, sizeof(this->icon));
+    strlcpy(this->type, PAGE_TYPE_FAN, sizeof(this->type));
     this->state_color = state_color;
 }
 

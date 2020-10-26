@@ -101,31 +101,42 @@ bool SliderCanvas::onTouchEventCallback (TouchEvent event, TouchEventData eventD
 }
 
 bool SliderCanvas::draw() {
-    uint16_t radius = (this->touched)?SLIDER_TOUCHED_RADIUS:SLIDER_RADIUS;
+    uint16_t radius = (this->getTouched())?SLIDER_TOUCHED_RADIUS:SLIDER_RADIUS;
     uint16_t knobColor = (this->getDisabled()?this->convert2rgb565(0x919191):this->convert2rgb565(SLIDER_KNOB_COLOR));
-    tft->fillRect(
-            this->getDrawX() - 2*SLIDER_TOUCHED_RADIUS,
-            this->getDrawY() + this->getDrawableHeight()/2-2*SLIDER_TOUCHED_RADIUS,
-            this->getDrawableWidth() + 4 * SLIDER_TOUCHED_RADIUS,
-            SLIDER_TOUCHED_RADIUS*4,
-            TFT_WHITE);
-    uint16_t circle_x = this->getDrawX() + (this->value - this->min)*(this->getDrawableWidth())/(this->max-this->min);
-    tft->fillRect(this->getDrawX(),
-        this->getDrawY() + this->getDrawableHeight()/2,
-        circle_x - this->getDrawX(),
-        SLIDER_HEIGHT,
-        this->knob_color);
-        tft->fillRect(circle_x,
-        this->getDrawY() + this->getDrawableHeight()/2,
-        this->x + this->width - this->marginRight - circle_x,
-        SLIDER_HEIGHT,
-        this->convert2rgb565(0x6f6f6f));
+    // tft->drawRect(this->getDrawX(),
+    //     this->getDrawY(),
+    //     this->getDrawableWidth(),
+    //     this->getDrawableHeight(),
+    //     this->getDarkMode()?TFT_WHITE:TFT_BLACK);
+    tft->startWrite();
+    tft->setAddrWindow(this->getDrawX()+1,
+        this->getDrawY()+1,
+        this->getDrawableWidth()-2,
+        this->getDrawableHeight()-2);
+    for (uint16_t y = 2;y < this->getDrawableHeight();y++) {
+        for (uint16_t x=1; x < this->getDrawableWidth()-1;x++) {
+            if ( x > SLIDER_MARGIN_LEFT &&
+                    x < (this->getDrawableWidth()-SLIDER_MARGIN_RIGHT) &&
+                    y > (this->getDrawableHeight() - SLIDER_HEIGHT)/2 &&
+                    y < (this->getDrawableHeight() + SLIDER_HEIGHT)/2 ) {
+                tft->pushColor(this->convert2rgb565(0x7F7F7F));
+            } else {
+                tft->pushColor(this->getBgColor());
+            }
+        }
+    }
+    tft->endWrite();
     if (!this->isValueInvalid()) {
+        uint16_t circle_x = this->getDrawX() + SLIDER_MARGIN_LEFT +
+            + ((this->getValue() - this->getMin())*
+            (this->getDrawableWidth() - SLIDER_MARGIN_RIGHT - SLIDER_MARGIN_LEFT))
+            /(this->getMax()-1-this->getMin());
         tft->fillCircle(
                 circle_x,
-                this->getDrawY() + this->getDrawableHeight()/2,
+                this->getDrawY() -1 + this->getDrawableHeight()/2,
                 radius,
                 knobColor);
+            return false;
     }
     return true;
 }
@@ -165,9 +176,9 @@ void SliderCanvas::setStep(int16_t step) {
 void SliderCanvas::setValue(int16_t value) {
     if (this->value != value) {
         this->value = value;
-        this->invalidValue = false;
         this->invalidate();
     }
+    this->invalidValue = false;
 }
 
 void SliderCanvas::setName(String name) {

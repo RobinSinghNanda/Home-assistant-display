@@ -21,7 +21,7 @@ class FanEntityCanvas : public SwitchEntityCanvas {
     protected:
         uint8_t fanSpeed;
         bool fanSpeedSliderEnabled;
-        CustomSliderCanvas * fanSpeedSlider;
+        SliderCanvas * fanSpeedSlider;
         FanEntityCanvasStateChangeCallback stateChangeCallback;
 };
 

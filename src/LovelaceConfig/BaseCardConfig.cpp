@@ -1,5 +1,7 @@
 #include "BaseCardConfig.hpp"
 
+#include "Arduino.h"
+
 BaseCardConfig::BaseCardConfig(const char * type) {
     BaseCardConfig(type,"","");
 }
