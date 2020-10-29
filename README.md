@@ -8,6 +8,10 @@ A Home Assistant display based on ESP32. It uses Home Assistant's official Webso
 ![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/blob/main/images/light_subscreen.png?raw=true)
 ![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/blob/main/images/light_subscreen2.png?raw=true)
 
+## PCB images
+![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/blob/main/images/pcb_front.PNG?raw=true)
+![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/blob/main/images/pcb_back.PNG?raw=true)<br/>
+
 ## Lovelace card type supported.
 1. [entities](https://www.home-assistant.io/lovelace/entities/)
 2. [light](https://www.home-assistant.io/lovelace/light/)
