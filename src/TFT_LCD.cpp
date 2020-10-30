@@ -871,7 +871,6 @@ void setHeaderCanvasState (TFTConfig * tftConfig, Canvas * headerCanvas) {
 void buildHeaderCanvas (TFTConfig * tftConfig, Canvas * headerCanvas) {
   uint8_t iconNum = 1;
   ScreenConfig * screenConfig = getScreenConfig(tftConfig);
-  tft.setFreeFont(HEADER_TEXT_FONT);
   if (screenConfig->getNumCards() == 0) {
     Serial.println("num == 0");
     return;

@@ -23,15 +23,15 @@
          ]
       },{
          "entity":"light.bedroom_light",
-         "name": "Light"
+         "name": "Tubelight"
       },{
          "entity": "fan.main_bedroom_fan",
          "name": "Fan",
          "icon": "mdi:fan",
 	      "state_color": 0
       }, { 
-         "entity":"light.main_bedroom_bed_light",
-         "name": "Bed"
+         "entity": "climate.bedroom_ac",
+         "name": "AC"
       }, {
          "entity": "media_player.bedroom_tv",
          "name": "TV",
@@ -66,41 +66,21 @@
       "name": "Occupancy"
     }
   ],
-  "title": "Sensors"
+  "title": "Sensors",
+  "icon": "mdi:home-assistant"
 },{
   "type": "entities",
   "entities": [
-    "switch.geyser"
+   {
+      "entity": "switch.geyser",
+      "name": "Geyser",
+      "icon": "mdi:power-socket"
+   },{
+      "entity":"light.main_bedroom_bed_light",
+      "name": "Light",
+      "icon":"mdi:led-strip"
+   }
   ],
-  "title": "Bathroom"
-},{
-   "type": "entities",
-   "entities": [
-      {
-         "entity": "switch.powerstrip_port1",
-         "name": "Port1"
-      },
-      {
-         "entity": "switch.powerstrip_port2",
-         "name": "Port2"
-      },
-      {
-         "entity": "switch.powerstrip_port3",
-         "name": "Port3"
-      },
-      {
-         "entity": "switch.powerstrip_port4",
-         "name": "Port4"
-      },
-      {
-         "entity": "switch.powerstrip_port5",
-         "name": "Port5"
-      },
-      {
-         "entity": "switch.powerstrip_port6",
-         "name": "Port6"
-      }
-   ],
-   "title": "Powerstrip6",
-   "state_color": true
+  "title": "Bathroom",
+  "icon": "mdi:home-assistant"
 }]

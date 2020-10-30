@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include "Free_Fonts.h"
 
 #include <SPI.h>
 #include "ConfigHelper.hpp"

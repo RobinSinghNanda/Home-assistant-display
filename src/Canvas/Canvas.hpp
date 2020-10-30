@@ -6,7 +6,6 @@
 #include <functional>
 #include <TFT_eSPI.h> 
 #include <JPEGDecoder.h>
-#include "Free_Fonts.h"
 using namespace std; 
 #include <list> 
 

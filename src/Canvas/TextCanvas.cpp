@@ -1,15 +1,6 @@
 #include "TextCanvas.hpp"
 
 TextCanvas::TextCanvas(Canvas * canvas, uint16_t id) : Canvas (canvas, id) {
-  this->font = TEXT_CANVAS_DEFAULT_FONT;
-}
-
-void TextCanvas::setFont(const GFXfont *font) {
-  if ((font == this->font) && (fontType == FONT_GFX)) {
-    return;
-  }
-  this->font = font;
-  this->invalidate();
 }
 
 void TextCanvas::setFont(String font) {
@@ -32,10 +23,7 @@ bool TextCanvas::draw() {
   if (textHeight > this->getDrawableHeight()) {
     return false;
   }
-  if (fontType == FONT_GFX) {
-    tft->setFreeFont(this->font);
-    tft->setTextColor(this->fgColor);
-  } else if (fontType == FONT_STRING) {
+  if (fontType == FONT_STRING) {
     tft->setTextColor(this->fgColor, this->bgColor);
     tft->loadFont(this->stringFont);
   } else {
