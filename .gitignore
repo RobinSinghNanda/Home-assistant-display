@@ -33,3 +33,7 @@
 
 #Secret file
 src/Secrets.hpp
+.pio/*
+.vscode/*
+*.swp
+*.swo
