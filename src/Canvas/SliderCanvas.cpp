@@ -1,5 +1,33 @@
 #include "SliderCanvas.hpp"
 
+
+const uint8_t custom_icons_bin18_cirle_bin[] = {
+  0x00, 0x00, 0x40, 0xd9, 0xff, 0x9d, 0x04, 0x00, 0x00,
+  0x00, 0x20, 0xfb, 0xff, 0xff, 0xff, 0xbf, 0x02, 0x00, 0x00, 0xe3, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0x3e, 0x00, 0x20, 0xfe, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xef, 0x02, 0xb0, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0b,
+  0xf4, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x4f, 0xf9, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0x9f, 0xfd, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xdf, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfd, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xdf, 0xf9, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0x9f, 0xf4, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x4f,
+  0xb0, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0b, 0x20, 0xfe, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xef, 0x02, 0x00, 0xe3, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0x3e, 0x00, 0x00, 0x20, 0xfb, 0xff, 0xff, 0xff, 0xbf, 0x02, 0x00,
+  0x00, 0x00, 0x40, 0xd9, 0xff, 0x9d, 0x04, 0x00, 0x00
+};
+
+const uint8_t custom_icons_bin12_cirle_bin[] = {
+  0x00, 0x60, 0xfc, 0xcf, 0x06, 0x00, 0x10, 0xfc, 0xff,
+  0xff, 0xcf, 0x01, 0xc0, 0xff, 0xff, 0xff, 0xff, 0x0c, 0xf6, 0xff, 0xff,
+  0xff, 0xff, 0x6f, 0xfc, 0xff, 0xff, 0xff, 0xff, 0xcf, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfc, 0xff, 0xff,
+  0xff, 0xff, 0xcf, 0xf6, 0xff, 0xff, 0xff, 0xff, 0x6f, 0xc0, 0xff, 0xff,
+  0xff, 0xff, 0x0c, 0x10, 0xfc, 0xff, 0xff, 0xcf, 0x01, 0x00, 0x60, 0xfc,
+  0xcf, 0x06, 0x00
+};
+
 SliderCanvas::SliderCanvas(Canvas * canvas, uint16_t id) : Canvas(canvas, id) {
     this->min = 0;
     this->max = 100;
@@ -101,44 +129,91 @@ bool SliderCanvas::onTouchEventCallback (TouchEvent event, TouchEventData eventD
 }
 
 bool SliderCanvas::draw() {
-    uint16_t radius = (this->getTouched())?SLIDER_TOUCHED_RADIUS:SLIDER_RADIUS;
-    uint16_t knobColor = (this->getDisabled()?this->convert2rgb565(0x919191):this->convert2rgb565(SLIDER_KNOB_COLOR));
-    // tft->drawRect(this->getDrawX(),
-    //     this->getDrawY(),
-    //     this->getDrawableWidth(),
-    //     this->getDrawableHeight(),
-    //     this->getDarkMode()?TFT_WHITE:TFT_BLACK);
     tft->startWrite();
     tft->setAddrWindow(this->getDrawX()+1,
         this->getDrawY()+1,
         this->getDrawableWidth()-2,
         this->getDrawableHeight()-2);
-    for (uint16_t y = 2;y < this->getDrawableHeight();y++) {
+    for (uint16_t y = 1;y < this->getDrawableHeight()-1;y++) {
         for (uint16_t x=1; x < this->getDrawableWidth()-1;x++) {
-            if ( x > SLIDER_MARGIN_LEFT &&
+            uint16_t bgColor = this->getBgColor();
+            uint16_t knobColor = drawKnob(x, y, this->getBgColor());
+            if (knobColor != bgColor) {
+                tft->pushColor(knobColor);
+            } else if ( x > SLIDER_MARGIN_LEFT &&
                     x < (this->getDrawableWidth()-SLIDER_MARGIN_RIGHT) &&
                     y > (this->getDrawableHeight() - SLIDER_HEIGHT)/2 &&
                     y < (this->getDrawableHeight() + SLIDER_HEIGHT)/2 ) {
-                tft->pushColor(this->convert2rgb565(0x7F7F7F));
+                tft->pushColor(this->convert2rgb565(SLIDER_COLOR));
             } else {
-                tft->pushColor(this->getBgColor());
+                tft->pushColor(bgColor);
             }
         }
     }
     tft->endWrite();
+    return true;
+}
+
+uint16_t SliderCanvas::alphaBlend(uint16_t fg, uint16_t bg, uint8 alpha) {
+
+  // alpha for foreground multiplication
+  // convert from 8bit to (6bit+1) with rounding
+  // will be in [0..64] inclusive
+  alpha = ( alpha + 2 ) >> 2;
+  // "beta" for background multiplication; (6bit+1);
+  // will be in [0..64] inclusive
+  uint8 beta = MAX_ALPHA - alpha;
+  // so (0..64)*alpha + (0..64)*beta always in 0..64
+
+  return (uint16_t)((
+            (  ( alpha * (uint32_t)( fg & MASK_RB )
+                + beta * (uint32_t)( bg & MASK_RB )
+            ) & MASK_MUL_RB )
+          |
+            (  ( alpha * ( fg & MASK_G )
+                + beta * ( bg & MASK_G )
+            ) & MASK_MUL_G )
+         ) >> 6 );
+}
+
+
+uint16_t SliderCanvas::drawKnob(uint16_t x, uint16_t y, uint16_t bgColor) {
+    uint16_t knobColor = (this->getDisabled()?this->convert2rgb565(0x919191):this->convert2rgb565(SLIDER_KNOB_COLOR));
     if (!this->isValueInvalid()) {
-        uint16_t circle_x = this->getDrawX() + SLIDER_MARGIN_LEFT +
+        uint16_t circle_x = SLIDER_MARGIN_LEFT +
             + ((this->getValue() - this->getMin())*
             (this->getDrawableWidth() - SLIDER_MARGIN_RIGHT - SLIDER_MARGIN_LEFT))
             /(this->getMax()-1-this->getMin());
-        tft->fillCircle(
-                circle_x,
-                this->getDrawY() -1 + this->getDrawableHeight()/2,
-                radius,
-                knobColor);
-            return false;
+        uint16_t circle_y = this->getDrawableHeight()/2;
+        uint16_t knobRadius;
+        if (this->touched) {
+            knobRadius = 9;
+        } else {
+            knobRadius = 6;
+        }
+        if ((x < circle_x - knobRadius) || (x >= circle_x + knobRadius) ||
+            (y < circle_y - knobRadius) || (y >= circle_y + knobRadius)) {
+            return bgColor;
+        }
+        uint8_t knobX = x - (circle_x - knobRadius);
+        uint8_t knobY = y - (circle_y - knobRadius);
+        uint8_t alpha;
+        if (this->touched) {
+            if (knobX%2 == 0) {
+                alpha = ((*(custom_icons_bin18_cirle_bin+knobY*knobRadius+knobX/2))<<4)&0xF0;
+            } else {
+                alpha = (*(custom_icons_bin18_cirle_bin+knobY*knobRadius+knobX/2))&0xF0;
+            }
+        } else {
+            if (knobX%2 == 0) {
+                alpha = ((*(custom_icons_bin12_cirle_bin+knobY*knobRadius+knobX/2))<<4)&0xF0;
+            } else {
+                alpha = (*(custom_icons_bin12_cirle_bin+knobY*knobRadius+knobX/2))&0xF0;
+            }
+        }
+        return alphaBlend(knobColor, bgColor, alpha);
     }
-    return true;
+    return bgColor;
 }
 
 

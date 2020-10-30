@@ -23,6 +23,7 @@ class BaseEntityRowCanvas : public Canvas {
     void onIconTouch(CanvasTouchCallback callback);
     void onNameTouch(CanvasTouchCallback callback);
     void setDarkMode(bool darkMode);
+    virtual void setFgColor(uint16_t fgColor);
   protected:
     ImageCanvas * iconCanvas;
     TextCanvas * nameCanvas;

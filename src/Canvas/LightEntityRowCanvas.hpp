@@ -15,6 +15,7 @@ class LightEntityRowCanvas : public SwitchEntityRowCanvas {
         void setBrightness(uint8_t brightness);
         uint8_t getBrightness();
         virtual void setIconPath(String setIconPath);
+        virtual void setFgColor(uint16_t fgColor);
         void onStateChange(LightStateChangeCallback callback);
     protected:
         uint8_t brightness;

@@ -18,10 +18,13 @@ void tft_lcd_setup(ScreenConfig * mainScreenConfig, ScreenConfig * settingsScree
   tftConfig->mainScreenConfig = mainScreenConfig;
   tftConfig->settingsScreenConfig = settingsScreenConfig;
   tftConfig->entityScreenConfig = new ScreenConfig();
+  tftConfig->firstSetupScreenConfig = new ScreenConfig();
+  tftConfig->firstSetupScreenConfig->addCard(new BaseCardConfig(PAGE_TYPE_WIFI_QR, "First setup", "mdi:home-assistant"));
   tftConfig->bottom_header = 0;
   tftConfig->rotation = 3;
   tftConfig->prev_rotation = -1;
   tftConfig->entityPage = 0;
+  tftConfig->first_setup = 0;
   tftConfig->connectionState = TFT_WifiDisconnected;
   screenCanvasG = new Canvas(&tft);
   screenConfigMutex = xSemaphoreCreateMutex();
@@ -59,7 +62,9 @@ void handle_touch_switch_row_state(Canvas *canvas, TouchEvent event, TouchEventD
 }
 
 ScreenConfig * getScreenConfig (TFTConfig * tftConfig) {
-  if (tftConfig->settings_page) {
+  if (tftConfig->first_setup) {
+    return tftConfig->firstSetupScreenConfig;
+  } else if (tftConfig->settings_page) {
     return tftConfig->settingsScreenConfig;
   } else if (tftConfig->entityPage){
     return tftConfig->entityScreenConfig;
@@ -238,6 +243,15 @@ bool setSwitchBodyCanvasState(TFTConfig * tftConfig, Canvas * bodyCanvas) {
       switchEntityCanvas->setDisabled(true);
     }
   }
+  return 1;
+}
+
+uint32_t buildWifiQrCanvas(TFTConfig * tftConfig, Canvas * bodyCanvas) {
+  QrCodeCanvas * qrCodeCanvas = new QrCodeCanvas(bodyCanvas, 0);
+  qrCodeCanvas->setHAlign(ALIGN_CENTER);
+  qrCodeCanvas->setVAlign(ALIGN_MIDDLE);
+  qrCodeCanvas->setMargin(10);
+  qrCodeCanvas->setPath("wifi");
   return 1;
 }
 
@@ -656,6 +670,8 @@ uint32_t setBodyCanvasState (TFTConfig * tftConfig, Canvas * bodyCanvas) {
     return setLightBodyCanvasState(tftConfig, bodyCanvas);
   } else if ((pageConfig != NULL) && (String(pageConfig->getType()) == PAGE_TYPE_FAN)) {
     return setFanBodyCanvasState(tftConfig, bodyCanvas);
+  } else if ((pageConfig != NULL) && (String(pageConfig->getType()) == PAGE_TYPE_WIFI_QR) && tftConfig->first_setup) {
+    return false;
   } else {
     Serial.println("Unknown page type");
     return 0;
@@ -686,6 +702,8 @@ uint32_t buildBodyCanvas (TFTConfig * tftConfig, Canvas * bodyCanvas) {
     return buildLightBodyCanvas(tftConfig, bodyCanvas);
   } else if ((pageConfig != NULL) && (String(pageConfig->getType()) == PAGE_TYPE_FAN)) {
     return buildFanBodyCanvas(tftConfig, bodyCanvas);
+  } else if ((pageConfig != NULL) && (String(pageConfig->getType()) == PAGE_TYPE_WIFI_QR) && tftConfig->first_setup) {
+    return buildWifiQrCanvas(tftConfig, bodyCanvas);
   } else {
     Serial.println("Unknown page type");
     Serial.println(String(pageConfig->getType()));
@@ -698,31 +716,32 @@ uint32_t drawScreen() {
   uint8_t require_update = tftConfig->require_update;
   if (screen_refresh || require_update) {
     Canvas * _screenCanvas = screenCanvasG;
-    if (screen_refresh) {
-      _screenCanvas = new Canvas(&tft);
-      if ((tftConfig->rotation == 0) || (tftConfig->rotation == 2)) {
-        _screenCanvas->setWidth(LCD_HEIGHT);
-        _screenCanvas->setHeight(LCD_WIDTH);
-      } else {
-        _screenCanvas->setWidth(LCD_WIDTH);
-        _screenCanvas->setHeight(LCD_HEIGHT);
+    if(xSemaphoreTake(screenConfigMutex, portMAX_DELAY) == pdTRUE) {
+      if (screen_refresh) {
+        _screenCanvas = new Canvas(&tft);
+        if ((tftConfig->rotation == 0) || (tftConfig->rotation == 2)) {
+          _screenCanvas->setWidth(LCD_HEIGHT);
+          _screenCanvas->setHeight(LCD_WIDTH);
+        } else {
+          _screenCanvas->setWidth(LCD_WIDTH);
+          _screenCanvas->setHeight(LCD_HEIGHT);
+        }
+        buildScreenCanvas(_screenCanvas);
+        _screenCanvas->setDarkMode(tftConfig->dark_mode);
+        _screenCanvas->setBgColor(tftConfig->dark_mode?TFT_BLACK:TFT_WHITE);
+        _screenCanvas->setFgColor(tftConfig->dark_mode?TFT_WHITE:TFT_BLACK);
       }
-      buildScreenCanvas(_screenCanvas);
-    }
-    _screenCanvas->setDarkMode(tftConfig->dark_mode);
-    _screenCanvas->setBgColor(tftConfig->dark_mode?TFT_BLACK:TFT_WHITE);
-    _screenCanvas->setFgColor(tftConfig->dark_mode?TFT_WHITE:TFT_BLACK);
-    setScreenCanvasState(_screenCanvas);
-    _screenCanvas->redraw();
-    if (screen_refresh) {
-      if(xSemaphoreTake(screenConfigMutex, portMAX_DELAY) == pdTRUE) {
-        Canvas * prevScreenCanvas = screenCanvasG;
-        screenCanvasG = _screenCanvas;
-        delete prevScreenCanvas;
-        xSemaphoreGive(screenConfigMutex);
-      } else {
-        Serial.println("Could not obtain the mutex");
+      setScreenCanvasState(_screenCanvas);
+      _screenCanvas->redraw();
+      if (screen_refresh) {
+        
+          Canvas * prevScreenCanvas = screenCanvasG;
+          screenCanvasG = _screenCanvas;
+          delete prevScreenCanvas;
       }
+      xSemaphoreGive(screenConfigMutex);
+    } else {
+      Serial.println("Could not obtain the mutex");
     }
   }
   tftConfig->screen_refresh = 0;
@@ -762,7 +781,7 @@ uint32_t buildScreenCanvas(Canvas * screenCanvas) {
   bodyCanvas->setHeight(screenCanvas->getHeight()-HEADER_HEIGHT);
   bodyCanvas->setY(screenCanvas->getY() + ((tftConfig->bottom_header)?0:HEADER_HEIGHT));
   buildBodyCanvas(tftConfig, bodyCanvas);
-  bodyCanvas->onSwipeComplete([](SwipeCanvas* canvas, SwipeEventData eventData)-> bool{
+  bodyCanvas->onSwipeComplete([](SwipeCanvas* canvas, SwipeEventData eventData)-> bool {
       int16_t delta = 0;
       if (eventData.swipeDirection == SwipeInvalid) {
         Canvas * headerCanvas = (*screenCanvasG)[ID_HEADER];
@@ -831,29 +850,9 @@ void setHeaderCanvasState (TFTConfig * tftConfig, Canvas * headerCanvas) {
   if (wifiCanvas != NULL) {
     ImageCanvas * wifiImageCanvas = (ImageCanvas *) wifiCanvas;
     String wifiIcon = "mdi:wifi-alert";
-    if (tftConfig->connectionState == TFT_HaSyncing) {
-      // uint32_t currIconChangeTime = millis();
-      // if (currIconChangeTime - prevIconChangeTime > 100) {
-      //   if (wifiSyncState == 0) {
-      //     wifiImageCanvas->setPath("mdi:sync-45");
-      //     wifiSyncState = 1;
-      //   } else if (wifiSyncState == 1) {
-      //     wifiImageCanvas->setPath("mdi:sync-90");
-      //     wifiSyncState = 2;
-      //   } else if (wifiSyncState == 2) {
-      //     wifiImageCanvas->setPath("mdi:sync-135");
-      //     wifiSyncState = 3;
-      //   } else if (wifiSyncState == 3) {
-      //     wifiImageCanvas->setPath("mdi:sync-180");
-      //     wifiSyncState = 0;
-      //   } else {
-      //     wifiImageCanvas->setPath("mdi:sync-45");
-      //     wifiSyncState = 0;
-      //   }
-      //   tftConfig->require_update = 1;
-      // }
-      // prevIconChangeTime = currIconChangeTime;
-      // return;
+    if (tftConfig->connectionState == TFT_FirstSetup) {
+      wifiIcon = "mdi:access-point";
+    } else if (tftConfig->connectionState == TFT_HaSyncing) {
       wifiIcon = "mdi:wifi-arrow-up-down";
     } else if (tftConfig->connectionState == TFT_HaConnected) {
       wifiIcon = "mdi:wifi-lock";
@@ -893,8 +892,11 @@ void buildHeaderCanvas (TFTConfig * tftConfig, Canvas * headerCanvas) {
     titleIconCanvas->setHAlign(ALIGN_CENTER);
     titleIconCanvas->setWidth(HEADER_ICON_WIDTH + HEADER_SETTINGS_LEFT*2);
     titleIconCanvas->setPath(titleIcon);
-    titleIconCanvas->setColorMask(LIGHT_THEME_ICON_COLOR);
-    titleIconCanvas->setAutoInvert(true);
+    if (tftConfig->dark_mode) {
+      titleIconCanvas->setFgColor(DARK_THEME_ICON_COLOR);
+    } else {
+      titleIconCanvas->setFgColor(LIGHT_THEME_ICON_COLOR);
+    }
     if (tftConfig->settings_page) {
       titleIconCanvas->onTouch([tftConfig](Canvas * canvas, TouchEvent event, TouchEventData eventData)->bool{
           if (event == TouchActionTapped || event == TouchActionLongPressed) {
@@ -928,8 +930,11 @@ void buildHeaderCanvas (TFTConfig * tftConfig, Canvas * headerCanvas) {
     settingsIconCanvas->setHAlign(ALIGN_CENTER);
     settingsIconCanvas->setVAlign(ALIGN_MIDDLE);
     settingsIconCanvas->setPath("mdi:cog");
-    settingsIconCanvas->setColorMask(LIGHT_THEME_ICON_COLOR);
-    settingsIconCanvas->setAutoInvert(true);
+    if (tftConfig->dark_mode) {
+      settingsIconCanvas->setFgColor(DARK_THEME_ICON_COLOR);
+    } else {
+      settingsIconCanvas->setFgColor(LIGHT_THEME_ICON_COLOR);
+    }
     settingsIconCanvas->onTouch(handle_touch_header_setttings);
     iconNum++;
   }
@@ -943,9 +948,11 @@ void buildHeaderCanvas (TFTConfig * tftConfig, Canvas * headerCanvas) {
   }
   wifiIconCanvas->setHAlign(ALIGN_CENTER);
   wifiIconCanvas->setVAlign(ALIGN_MIDDLE);
-  
-  wifiIconCanvas->setAutoInvert(true);
-  wifiIconCanvas->setColorMask(LIGHT_THEME_ICON_COLOR);
+  if (tftConfig->dark_mode) {
+    wifiIconCanvas->setFgColor(DARK_THEME_ICON_COLOR);
+  } else {
+    wifiIconCanvas->setFgColor(LIGHT_THEME_ICON_COLOR);
+  }
   PageSelectorCanvas * pageSelectorCanvas = NULL;
   if (screenConfig->getNumCards() > 1) {
     pageSelectorCanvas = new PageSelectorCanvas(headerCanvas, ID_HEADER_PAGE_SELECTOR);
@@ -955,7 +962,6 @@ void buildHeaderCanvas (TFTConfig * tftConfig, Canvas * headerCanvas) {
     pageSelectorCanvas->alignRight(wifiIconCanvas);
     pageSelectorCanvas->setLimitStep(true);
     pageSelectorCanvas->onValueChange(handle_page_value_change); 
-    //pageSelectorCanvas->onTouch(handle_touch_header_page); 
   }
   String title = String(screenConfig->getCard(tftConfig->curr_page_num)->getTitle());
   if (title != "") {
@@ -969,9 +975,8 @@ void buildHeaderCanvas (TFTConfig * tftConfig, Canvas * headerCanvas) {
       titleCanvas->setRightX(wifiIconCanvas->getX());
     }
     titleCanvas->setVAlign(ALIGN_MIDDLE);
-    titleCanvas->textHeight = 12;
     titleCanvas->setText(title);
-    titleCanvas->setFont(HEADER_TEXT_FONT);
+    titleCanvas->setFont("Roboto-Medium24");
     if (tftConfig->settings_page && screenConfig->getNumCards() <= 1) {
       titleCanvas->onTouch([tftConfig](Canvas * canvas, TouchEvent event, TouchEventData eventData)->bool{
           if (event == TouchActionTapped || event == TouchActionLongPressed) {
@@ -995,21 +1000,7 @@ void buildHeaderCanvas (TFTConfig * tftConfig, Canvas * headerCanvas) {
     } else {
       titleCanvas->onTouch(handle_touch_header_page); 
     }
-  }  
-    
-  // //}
-  // //bottom line
-  // tft.drawLine(headerCanvas->getX(),
-  //   headerCanvas->getY() + headerCanvas->getHeight(),
-  //   headerCanvas->getX() + headerCanvas->getWidth(),
-  //   headerCanvas->getY() + headerCanvas->getHeight(),
-  //   (tftConfig->dark_mode)?TFT_WHITE:TFT_BLACK);
-  // //top line
-  // tft.drawLine(headerCanvas->getX(),
-  //   headerCanvas->getY(),
-  //   headerCanvas->getX() + headerCanvas->getWidth(),
-  //   headerCanvas->getY(),
-  //   (tftConfig->dark_mode)?TFT_WHITE:TFT_BLACK);
+  }
 }
 
 bool handle_touch_header_setttings(Canvas *canvas, TouchEvent event, TouchEventData eventData) {
@@ -1171,6 +1162,11 @@ void tft_set_dark_mode(uint8_t dark_mode) {
 void tft_set_connection_state (TFTConnectionState state) {
   TFTConnectionState prev_state = tftConfig->connectionState;
   tftConfig->connectionState = state;
+  if (state == TFT_FirstSetup) {
+    tft_set_first_setup_page(true);
+  } else {
+    tft_set_first_setup_page(false);
+  }
   if (prev_state != state)
     tft_require_update();
 }
@@ -1200,6 +1196,14 @@ uint32_t tft_set_page_num (uint8_t page_num) {
 void tft_set_settings_page (uint8_t state) {
   uint8_t prev_state = tftConfig->settings_page;
   tftConfig->settings_page = state;
+  if (prev_state != state)
+    tft_screen_refresh();
+}
+
+
+void tft_set_first_setup_page (uint8_t state) {
+  uint8_t prev_state = tftConfig->first_setup;
+  tftConfig->first_setup = state;
   if (prev_state != state)
     tft_screen_refresh();
 }

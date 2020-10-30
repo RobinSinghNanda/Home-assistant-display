@@ -11,10 +11,11 @@ const char* password = WIFI_PASSWORD;
 #if SCREEN_SERVER_ENABLE
 #include "ScreenServer.hpp"
 #endif
+#include "WifiManager.hpp"
 ScreenConfig mainScreenConfig;
 ScreenConfig settingsScreenConfig;
 HomeAssistant homeAssistant(HOME_ASSITANT_WEBSOCKET, HOME_ASSITANT_AUTH_MESSAGE);
-
+WifiManager wifiManager;
 
 char device_name[20];
 
@@ -37,7 +38,6 @@ char haplate_settings_page [51];
 TaskHandle_t lcdTaskHandle = NULL;
 TaskHandle_t touchTaskHandle = NULL;
 TaskHandle_t homeAssitantTaskHandle = NULL;
-
 
 
 
@@ -93,7 +93,6 @@ void setup(void) {
                     &touchTaskHandle );      /* Used to pass out the created task's handle. */
   setup_wifi();
   add_entities(&mainScreenConfig);
-  homeAssistant.connect();
 }
 
 void lcdTaskCode( void * pvParameters ) {
@@ -137,34 +136,27 @@ void touchTaskCode( void * pvParameters ) {
 }
 
 void loop() {
-  // wifi_loop();
-  homeAssistant.loop();
+  wifi_loop();
   vTaskDelay(100/portTICK_PERIOD_MS);
 }
 
+bool justConnected = true;
+
 void wifi_loop() {
   if (WiFi.status() != WL_CONNECTED) {
-    tft_set_connection_state(TFT_WifiDisconnected);
-    setup_wifi();
+    justConnected = 1;
+    //tft_set_connection_state(TFT_WifiDisconnected);
+  } else {
+    if (justConnected) {
+      tft_set_connection_state(TFT_WifiConnected);
+      justConnected = false;
+    }
+    homeAssistant.loop();
   }
 }
+
 void setup_wifi() {
-  // We start by connecting to a WiFi network
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
-
-  WiFi.begin(ssid, password);
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  tft_set_connection_state(TFT_WifiConnected);
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
+  wifiManager.setup();
 }
 
 void add_entities (ScreenConfig * screenConfig) {

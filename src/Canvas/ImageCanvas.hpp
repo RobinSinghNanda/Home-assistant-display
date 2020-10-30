@@ -7,6 +7,12 @@
 #define LIGHT_THEME_ICON_COLOR 0x632C
 #define DARK_THEME_ICON_COLOR  0xE71C
 
+#define MASK_RB       63519 // 0b1111100000011111
+#define MASK_G         2016 // 0b0000011111100000
+#define MASK_MUL_RB 4065216 // 0b1111100000011111000000
+#define MASK_MUL_G   129024 // 0b0000011111100000000000
+#define MAX_ALPHA        64 // 6bits+1 with rounding
+
 enum ImageType {
   ImageTypeJpg,
   ImageTypeBin
@@ -17,24 +23,16 @@ class ImageCanvas : public Canvas {
     ImageCanvas(Canvas * canvas, uint16_t id);
     void setPath(String path);
     String getPath();
-    void setColorMask(uint16_t colorMask);
-    uint16_t getColorMask();
-    void setColorInvert(bool colorInvert);
-    bool getColorInvert();
-    void setAutoInvert(bool autoInvert);
-    bool getAutoInvert();
     void setDarkMode(bool darkMode);
   protected:
     String path;
-    uint16_t colorMask;
-    bool colorInvert;
-    bool autoInvert = false;
     ImageType imageType;
     void renderJPEG();
     void renderBin();
     virtual bool draw();
     bool draw(String path);
     bool draw(String path, uint16_t colorMask, uint8_t colorInvert);
+    uint16_t alphaBlend(uint16_t fg, uint16_t bg, uint8 alpha);
 };
 
 #endif

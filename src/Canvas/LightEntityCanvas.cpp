@@ -74,9 +74,7 @@ LightEntityCanvas::LightEntityCanvas(Canvas * canvas, uint16_t id) : SwitchEntit
             return this->stateChangeCallback(this, this->getState());
         });
     brightnessSlider->onDraw([](CustomSliderCanvas * canvas, TFT_eSPI * tft)->bool{
-        uint16_t radius = (canvas->getTouched())?SLIDER_TOUCHED_RADIUS:SLIDER_RADIUS;
-        uint16_t knobColor = (canvas->getDisabled()?canvas->convert2rgb565(0x919191):canvas->convert2rgb565(SLIDER_KNOB_COLOR));
-        tft->drawRect(canvas->getDrawX(),
+       tft->drawRect(canvas->getDrawX(),
             canvas->getDrawY(),
             canvas->getDrawableWidth(),
             canvas->getDrawableHeight(),
@@ -89,34 +87,24 @@ LightEntityCanvas::LightEntityCanvas(Canvas * canvas, uint16_t id) : SwitchEntit
         for (uint16_t y = 2;y < canvas->getDrawableHeight();y++) {
             for (uint16_t x=1; x < canvas->getDrawableWidth()-1;x++) {
                 uint8_t color = x*255/canvas->getDrawableWidth();
-                if ( x > SLIDER_MARGIN_LEFT &&
-                     x < (canvas->getDrawableWidth()-SLIDER_MARGIN_RIGHT) &&
-                     y > (canvas->getDrawableHeight() - SLIDER_HEIGHT)/2 &&
-                     y < (canvas->getDrawableHeight() + SLIDER_HEIGHT)/2 ) {
-                    tft->pushColor(canvas->convert2rgb565(0x7F7F7F));
+                uint16_t bgColor = canvas->convert2rgb565(color, color, color);
+                uint16_t knobColor = canvas->drawKnob(x, y, bgColor);
+                if (knobColor != bgColor) {
+                    tft->pushColor(knobColor);
+                } else if ( x > SLIDER_MARGIN_LEFT &&
+                        x < (canvas->getDrawableWidth()-SLIDER_MARGIN_RIGHT) &&
+                        y > (canvas->getDrawableHeight() - SLIDER_HEIGHT)/2 &&
+                        y < (canvas->getDrawableHeight() + SLIDER_HEIGHT)/2 ) {
+                    tft->pushColor(canvas->convert2rgb565(SLIDER_COLOR));
                 } else {
-                    tft->pushColor(canvas->convert2rgb565(color, color, color));
+                    tft->pushColor(bgColor);
                 }
             }
         }
         tft->endWrite();
-        if (!canvas->isValueInvalid()) {
-            uint16_t circle_x = canvas->getDrawX() + SLIDER_MARGIN_LEFT +
-                + ((canvas->getValue() - canvas->getMin())*
-                (canvas->getDrawableWidth() - SLIDER_MARGIN_RIGHT - SLIDER_MARGIN_LEFT))
-                /(canvas->getMax()-1-canvas->getMin());
-            tft->fillCircle(
-                    circle_x,
-                    canvas->getDrawY() -1 + canvas->getDrawableHeight()/2,
-                    radius,
-                    knobColor);
-                return false;
-        }
         return true;
         });
     whiteSlider->onDraw([](CustomSliderCanvas * canvas, TFT_eSPI * tft)->bool{
-        uint16_t radius = (canvas->getTouched())?SLIDER_TOUCHED_RADIUS:SLIDER_RADIUS;
-        uint16_t knobColor = (canvas->getDisabled()?canvas->convert2rgb565(0x919191):canvas->convert2rgb565(SLIDER_KNOB_COLOR));
         tft->drawRect(canvas->getDrawX(),
             canvas->getDrawY(),
             canvas->getDrawableWidth(),
@@ -130,34 +118,24 @@ LightEntityCanvas::LightEntityCanvas(Canvas * canvas, uint16_t id) : SwitchEntit
         for (uint16_t y = 2;y < canvas->getDrawableHeight();y++) {
             for (uint16_t x=1; x < canvas->getDrawableWidth()-1;x++) {
                 uint8_t color = 127+x*127/canvas->getDrawableWidth();
-                if ( x > SLIDER_MARGIN_LEFT &&
-                     x < (canvas->getDrawableWidth()-SLIDER_MARGIN_RIGHT) &&
-                     y > (canvas->getDrawableHeight() - SLIDER_HEIGHT)/2 &&
-                     y < (canvas->getDrawableHeight() + SLIDER_HEIGHT)/2 ) {
-                    tft->pushColor(canvas->convert2rgb565(0x7F7F7F));
+                uint16_t bgColor = canvas->convert2rgb565(color, color, color);
+                uint16_t knobColor = canvas->drawKnob(x, y, bgColor);
+                if (knobColor != bgColor) {
+                    tft->pushColor(knobColor);
+                } else if ( x > SLIDER_MARGIN_LEFT &&
+                        x < (canvas->getDrawableWidth()-SLIDER_MARGIN_RIGHT) &&
+                        y > (canvas->getDrawableHeight() - SLIDER_HEIGHT)/2 &&
+                        y < (canvas->getDrawableHeight() + SLIDER_HEIGHT)/2 ) {
+                    tft->pushColor(canvas->convert2rgb565(SLIDER_COLOR));
                 } else {
-                    tft->pushColor(canvas->convert2rgb565(color, color, color));
+                    tft->pushColor(bgColor);
                 }
             }
         }
         tft->endWrite();
-        if (!canvas->isValueInvalid()) {
-            uint16_t circle_x = canvas->getDrawX() + SLIDER_MARGIN_LEFT +
-                + ((canvas->getValue() - canvas->getMin())*
-                (canvas->getDrawableWidth() - SLIDER_MARGIN_RIGHT - SLIDER_MARGIN_LEFT))
-                /(canvas->getMax()-1-canvas->getMin());
-            tft->fillCircle(
-                    circle_x,
-                    canvas->getDrawY() -1 + canvas->getDrawableHeight()/2,
-                    radius,
-                    knobColor);
-                return false;
-        }
         return false;
         });
     colorTemperatureSlider->onDraw([](CustomSliderCanvas * canvas, TFT_eSPI * tft)->bool{
-        uint16_t radius = (canvas->getTouched())?SLIDER_TOUCHED_RADIUS:SLIDER_RADIUS;
-        uint16_t knobColor = (canvas->getDisabled()?canvas->convert2rgb565(0x919191):canvas->convert2rgb565(SLIDER_KNOB_COLOR));
         tft->drawRect(canvas->getDrawX(),
             canvas->getDrawY(),
             canvas->getDrawableWidth(),
@@ -171,13 +149,7 @@ LightEntityCanvas::LightEntityCanvas(Canvas * canvas, uint16_t id) : SwitchEntit
         uint16_t red, green, blue;
         for (uint16_t y = 2;y <canvas->getDrawableHeight();y++) {
             for (uint16_t x=1; x < canvas->getDrawableWidth()-1;x++) {
-                if ( x > SLIDER_MARGIN_LEFT &&
-                     x < (canvas->getDrawableWidth()-SLIDER_MARGIN_RIGHT) &&
-                     y > (canvas->getDrawableHeight() - SLIDER_HEIGHT)/2 &&
-                     y < (canvas->getDrawableHeight() + SLIDER_HEIGHT)/2 ) {
-                    tft->pushColor(canvas->convert2rgb565(0x7F7F7F));
-                    continue;
-                } else if (x < canvas->getDrawableWidth()/2) {
+                if (x < canvas->getDrawableWidth()/2) {
                     red = map(x, 0, canvas->getDrawableWidth()/2, 0xa8, 0xff);
                     green = map(x, 0, canvas->getDrawableWidth()/2, 0xd2, 0xff);
                     blue = 0xff;
@@ -192,27 +164,24 @@ LightEntityCanvas::LightEntityCanvas(Canvas * canvas, uint16_t id) : SwitchEntit
                     blue = color;
                     green = color;
                 }
-                tft->pushColor(canvas->convert2rgb565(red, green, blue));
+                uint16_t bgColor = canvas->convert2rgb565(red, green, blue);
+                uint16_t knobColor = canvas->drawKnob(x, y, bgColor);
+                if (knobColor != bgColor) {
+                    tft->pushColor(knobColor);
+                } else if ( x > SLIDER_MARGIN_LEFT &&
+                        x < (canvas->getDrawableWidth()-SLIDER_MARGIN_RIGHT) &&
+                        y > (canvas->getDrawableHeight() - SLIDER_HEIGHT)/2 &&
+                        y < (canvas->getDrawableHeight() + SLIDER_HEIGHT)/2 ) {
+                    tft->pushColor(canvas->convert2rgb565(SLIDER_COLOR));
+                } else {
+                    tft->pushColor(bgColor);
+                }
             }
         }
         tft->endWrite();
-        if (!canvas->isValueInvalid()) {
-            uint16_t circle_x = canvas->getDrawX() + SLIDER_MARGIN_LEFT +
-                + ((canvas->getValue() - canvas->getMin())*
-                (canvas->getDrawableWidth() - SLIDER_MARGIN_RIGHT - SLIDER_MARGIN_LEFT))
-                /(canvas->getMax()-1-canvas->getMin());
-            tft->fillCircle(
-                    circle_x,
-                    canvas->getDrawY() -1 + canvas->getDrawableHeight()/2,
-                    radius,
-                    knobColor);
-                return false;
-        }
         return false;
         });
     colorSlider->onDraw([](CustomSliderCanvas * canvas, TFT_eSPI * tft)->bool{
-        uint16_t radius = (canvas->getTouched())?SLIDER_TOUCHED_RADIUS:SLIDER_RADIUS;
-        uint16_t knobColor = (canvas->getDisabled()?canvas->convert2rgb565(0x919191):canvas->convert2rgb565(SLIDER_KNOB_COLOR));
         tft->drawRect(canvas->getDrawX(),
             canvas->getDrawY(),
             canvas->getDrawableWidth(),
@@ -228,13 +197,7 @@ LightEntityCanvas::LightEntityCanvas(Canvas * canvas, uint16_t id) : SwitchEntit
             uint16_t red = 255,green = 0,blue = 0;
             for (uint16_t k=1; k < canvas->getDrawableWidth()-1;k++) {
                 uint16_t x = k -SLIDER_MARGIN_LEFT;
-                if ( k > SLIDER_MARGIN_LEFT &&
-                     k < (canvas->getDrawableWidth()-SLIDER_MARGIN_RIGHT) &&
-                     y > (canvas->getDrawableHeight() - SLIDER_HEIGHT)/2 &&
-                     y < (canvas->getDrawableHeight() + SLIDER_HEIGHT)/2 ) {
-                    tft->pushColor(canvas->convert2rgb565(0x7F7F7F));
-                    continue;
-                } else if (k < SLIDER_MARGIN_LEFT) {
+                if (k < SLIDER_MARGIN_LEFT) {
                     red = 255;
                     green = 0;
                     blue = 0;
@@ -273,22 +236,21 @@ LightEntityCanvas::LightEntityCanvas(Canvas * canvas, uint16_t id) : SwitchEntit
                     blue = color;
                     green = color;
                 }
-                tft->pushColor(canvas->convert2rgb565(red, green, blue));
+                uint16_t bgColor = canvas->convert2rgb565(red, green, blue);
+                uint16_t knobColor = canvas->drawKnob(x, y, bgColor);
+                if (knobColor != bgColor) {
+                    tft->pushColor(knobColor);
+                } else if ( x > SLIDER_MARGIN_LEFT &&
+                        x < (canvas->getDrawableWidth()-SLIDER_MARGIN_RIGHT) &&
+                        y > (canvas->getDrawableHeight() - SLIDER_HEIGHT)/2 &&
+                        y < (canvas->getDrawableHeight() + SLIDER_HEIGHT)/2 ) {
+                    tft->pushColor(canvas->convert2rgb565(SLIDER_COLOR));
+                } else {
+                    tft->pushColor(bgColor);
+                }
             }
         }
         tft->endWrite();
-        if (!canvas->isValueInvalid()) {
-            uint16_t circle_x = canvas->getDrawX() + SLIDER_MARGIN_LEFT +
-                + ((canvas->getValue() - canvas->getMin())*
-                (canvas->getDrawableWidth() - SLIDER_MARGIN_RIGHT - SLIDER_MARGIN_LEFT))
-                /(canvas->getMax()-1-canvas->getMin());
-            tft->fillCircle(
-                    circle_x,
-                    canvas->getDrawY() -1 + canvas->getDrawableHeight()/2,
-                    radius,
-                    knobColor);
-                return false;
-        }
         return false;
         });
     this->SwitchEntityCanvas::onStateChange([this](SwitchCanvas * switchCanvas, bool state)->bool{

@@ -5,29 +5,42 @@ TextCanvas::TextCanvas(Canvas * canvas, uint16_t id) : Canvas (canvas, id) {
 }
 
 void TextCanvas::setFont(const GFXfont *font) {
-    const GFXfont * prevFont = this->font; 
-    this->font = font;
-    if (prevFont != font) {
-        this->invalidate();
-    }
+  if ((font == this->font) && (fontType == FONT_GFX)) {
+    return;
+  }
+  this->font = font;
+  this->invalidate();
+}
+
+void TextCanvas::setFont(String font) {
+  if ((font == this->stringFont) && (fontType == FONT_STRING)) {
+    return;
+  }
+  fontType = FONT_STRING;
+  this->stringFont = font;
+  this->invalidate();
 }
 
 bool TextCanvas::draw() {
   this->tft->fillRect(this->x, this->y, this->width, this->height, this->bgColor);
   if (this->getDrawableWidth() == 0 || this->getDrawableHeight() == 0) {
-    Serial.println("Draw area is null");
     return false;
   }
   if (this->text == "") {
-    Serial.println("Text is null");
     return false;
   }
   if (textHeight > this->getDrawableHeight()) {
-    Serial.println("Text Height is greater than drawable");
-    this->redrawChildren();
     return false;
   }
-  tft->setFreeFont(this->font);
+  if (fontType == FONT_GFX) {
+    tft->setFreeFont(this->font);
+    tft->setTextColor(this->fgColor);
+  } else if (fontType == FONT_STRING) {
+    tft->setTextColor(this->fgColor, this->bgColor);
+    tft->loadFont(this->stringFont);
+  } else {
+    return false;
+  }
   uint16_t textWidth = tft->textWidth(text);
   if (textWidth > this->getDrawableWidth()) {
     bool widthReduced = false;
@@ -48,18 +61,15 @@ bool TextCanvas::draw() {
       return false;
     }
     String reducedText = String(carr);
-    tft->setTextColor(this->fgColor);
     tft->setCursor(getCursorX(reducedText), getCursorY());
     tft->print(carr);
-    this->redrawChildren();
     return true;
   }
-  tft->setTextColor(this->fgColor);
   tft->setCursor(getCursorX(text), getCursorY());
   tft->print(text);
-  this->redrawChildren();
   return true;
 }
+
 void TextCanvas::setText(String text) {
     String prev_text =  this->text;
     this->text = text;
@@ -88,11 +98,15 @@ uint16_t TextCanvas::getCursorX(String str) {
 uint16_t TextCanvas::getCursorY() {
   uint16_t cursorY = 0;
   if (vAlign == ALIGN_TOP) {
-    cursorY = this->getDrawY() + textHeight;
+    cursorY = this->getDrawY();
   } else if (vAlign == ALIGN_MIDDLE) {
-    cursorY = this->getDrawY() + textHeight + (this->getDrawableHeight()-textHeight)/2 ;
+    cursorY = this->getDrawY() + 3 +(this->getDrawableHeight()-tft->fontHeight())/2 ;
   } else if (vAlign == ALIGN_BOTTOM) {
-    cursorY = this->getDrawY() + textHeight + (this->getDrawableHeight()-textHeight);
+    cursorY = this->getDrawY() + (this->getDrawableHeight()-tft->fontHeight());
   }
   return cursorY;
+}
+
+uint8_t TextCanvas::getTextHeight() {
+  return tft->fontHeight();
 }

@@ -47,7 +47,6 @@ typedef Canvas* CanvasRef;
 class Canvas {
   public:
     TFT_eSPI * tft;
-    uint16_t textHeight = 9;
     Canvas(TFT_eSPI * tft);
     Canvas(Canvas * other, uint16_t id);
     virtual ~Canvas();
@@ -130,13 +129,16 @@ class Canvas {
     void horizontalAlign(Canvas * leftCanvas, Canvas * rightCanvas);
     void setBgColor(uint16_t bgColor);
     uint16_t getBgColor(); 
-    void setFgColor(uint16_t fgColor);
+    virtual void setFgColor(uint16_t fgColor);
     uint16_t getFgColor(); 
     uint16_t getID();
     Canvas* operator [] (uint16_t id) const;
     Canvas* get(uint16_t id);
     uint16_t convert2rgb565 (uint32_t color);
     uint16_t convert2rgb565 (uint8_t red, uint8_t green, uint8_t blue);
+    uint16_t getRed(uint16_t color);
+    uint16_t getGreen(uint16_t color);
+    uint16_t getBlue(uint16_t color);
   protected:
     SemaphoreHandle_t tftMutex;
     list<Canvas *> children;

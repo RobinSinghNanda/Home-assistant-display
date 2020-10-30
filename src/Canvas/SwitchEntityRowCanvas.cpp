@@ -30,17 +30,13 @@ bool SwitchEntityRowCanvas::getDisabled() {
     return this->stateCanvas->getDisabled();
 }
 
-
 void SwitchEntityRowCanvas::onStateChange(SwitchCanvasStateChangeCallback callback) {
     this->onStateChangeCallback = callback;
 }
 
 void SwitchEntityRowCanvas::setStateColor(bool stateColor) {
-    bool prevStateColor = stateColor;
     this->stateColor = this->stateColor;
-    if (!this->stateCanvas->getDisabled() && this->stateCanvas->getState() && (prevStateColor != stateColor)) {
-        this->iconCanvas->invalidate();
-    }
+    this->setIconColor();
 }
 bool SwitchEntityRowCanvas::getStateColor() {
     return this->stateColor;
@@ -48,11 +44,11 @@ bool SwitchEntityRowCanvas::getStateColor() {
 
 void SwitchEntityRowCanvas::setIconColor() {
     if (this->stateCanvas->getDisabled()) {
-        this->iconCanvas->setColorMask(convert2rgb565((this->darkMode)?0x6f6f6f:0xbdbdbd));
+        this->iconCanvas->setFgColor(convert2rgb565((this->darkMode)?0x6f6f6f:0xbdbdbd));
     } else if (this->stateCanvas->getState()){
-        this->iconCanvas->setColorMask((this->stateColor)?convert2rgb565(0xfdd835):convert2rgb565(0x44739e));
+        this->iconCanvas->setFgColor((this->stateColor)?convert2rgb565(0xfdd835):convert2rgb565(0x44739e));
     } else {
-        this->iconCanvas->setColorMask(convert2rgb565(0x44739e)); 
+        this->iconCanvas->setFgColor(convert2rgb565(0x44739e)); 
     }
 }
 

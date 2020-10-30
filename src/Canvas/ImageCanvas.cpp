@@ -2,9 +2,7 @@
 
 ImageCanvas::ImageCanvas(Canvas * canvas, uint16_t id) : Canvas(canvas, id) {
     this->path = "";
-    this->colorMask = DARK_THEME_ICON_COLOR;
-    this->colorInvert = 0;
-    this->autoInvert = 1;
+    this->fgColor = DARK_THEME_ICON_COLOR;
     this->imageType = ImageTypeJpg;
 }
 
@@ -23,42 +21,14 @@ void ImageCanvas::setPath(String path) {
   this->invalidate();
 }
 
-void ImageCanvas::setAutoInvert(bool autoInvert) {
-  this->autoInvert = autoInvert;
-  if (autoInvert) {
-    this->colorInvert = !this->darkMode;
-    if (this->darkMode) {
-      this->colorMask = DARK_THEME_ICON_COLOR;
-    } else {
-      this->colorMask = LIGHT_THEME_ICON_COLOR;
-    }
-  }
-}
-
-bool ImageCanvas::getAutoInvert() {
-  return this->autoInvert;
-}
 
 void ImageCanvas::setDarkMode(bool darkMode) {
   invalidateIfNotEqual(this->darkMode, darkMode);
   this->darkMode = darkMode;
-  if (this->autoInvert) {
-    this->colorInvert = !darkMode;
-    if (this->darkMode) {
-      this->colorMask = DARK_THEME_ICON_COLOR;
-    } else {
-      this->colorMask = LIGHT_THEME_ICON_COLOR;
-    }
-  }
   this->invalidate();
 }
 
 bool ImageCanvas::draw() {
-  if (this->colorInvert && this->colorMask == 0xFFFF) {
-    this->colorMask = 0x0000;
-  } else if (!this->colorInvert && this->colorMask == 0x0000) {
-    this->colorMask = 0xFFFF;
-  }
   fs::File file = SPIFFS.open( this->path, "r");    // File handle reference for SPIFFS
   //  File jpegFile = SD.open( filename, FILE_READ);  // or, file handle reference for SD library
  
@@ -69,10 +39,6 @@ bool ImageCanvas::draw() {
   if (this->imageType == ImageTypeBin) {
     this->renderBin();
     return 1;
-  }
-  if (this->imageType == ImageTypeJpg) {
-    this->colorMask = 0xFFFF;
-    this->colorInvert = false;
   }
   boolean decoded = JpegDec.decodeFsFile(this->path);  // or pass the filename (leading / distinguishes SPIFFS files)
                                    // Note: the filename can be a String or character array type
@@ -89,6 +55,30 @@ bool ImageCanvas::draw() {
     Serial.println(this->path);
   }
   return 1;
+}
+
+
+
+uint16_t ImageCanvas::alphaBlend(uint16_t fg, uint16_t bg, uint8 alpha) {
+
+  // alpha for foreground multiplication
+  // convert from 8bit to (6bit+1) with rounding
+  // will be in [0..64] inclusive
+  alpha = ( alpha + 2 ) >> 2;
+  // "beta" for background multiplication; (6bit+1);
+  // will be in [0..64] inclusive
+  uint8 beta = MAX_ALPHA - alpha;
+  // so (0..64)*alpha + (0..64)*beta always in 0..64
+
+  return (uint16_t)((
+            (  ( alpha * (uint32_t)( fg & MASK_RB )
+                + beta * (uint32_t)( bg & MASK_RB )
+            ) & MASK_MUL_RB )
+          |
+            (  ( alpha * ( fg & MASK_G )
+                + beta * ( bg & MASK_G )
+            ) & MASK_MUL_G )
+         ) >> 6 );
 }
 
 void ImageCanvas::renderBin() {
@@ -162,15 +152,10 @@ void ImageCanvas::renderBin() {
   while (file.available() && num_pixels > 0) {
     pImg = file.read();
     uint8_t color8Bit;
-    uint16_t color16Bit;
     color8Bit = (pImg<<4)&0xF0;
-    color16Bit = ((color8Bit & 0b11111000)<<8) + ((color8Bit & 0b11111100)<<3)+(color8Bit>>3);
-    color16Bit = (colorInvert)?((~color16Bit)|colorMask):(color16Bit&colorMask);
-    tft->pushColor(color16Bit);
+    tft->pushColor(this->alphaBlend(this->fgColor, this->bgColor, color8Bit));
     color8Bit = pImg&0xF0;
-    color16Bit = ((color8Bit & 0b11111000)<<8) + ((color8Bit & 0b11111100)<<3)+(color8Bit>>3);
-    color16Bit = (this->colorInvert)?((~color16Bit)|colorMask):(color16Bit&colorMask);
-    tft->pushColor(color16Bit);
+    tft->pushColor(this->alphaBlend(this->fgColor, this->bgColor, color8Bit));
     num_pixels--;
   }
   tft->endWrite();
@@ -284,28 +269,7 @@ void ImageCanvas::renderJPEG() {
     tft->endWrite();
   }
 }
+
 String ImageCanvas::getPath() {
     return this->path;
-}
-
-
-void ImageCanvas::setColorMask(uint16_t colorMask) {
-  if (colorMask != this->colorMask) {
-    this->colorMask = colorMask;
-    this->invalidate();
-  }
-}
-
-uint16_t ImageCanvas::getColorMask() {
-  return this->colorMask;
-}
-
-void ImageCanvas::setColorInvert(bool colorInvert) {
-  invalidateIfNotEqual(this->colorInvert, colorInvert);
-  this->colorInvert =  colorInvert;
-  this->invalidate();
-}
-
-bool ImageCanvas::getColorInvert() {
-  return this->colorInvert;
 }

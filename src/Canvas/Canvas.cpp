@@ -383,7 +383,7 @@ uint16_t Canvas::getBgColor() {
 }
 
 void Canvas::setFgColor(uint16_t fgColor) { 
-  invalidateIfNotEqual(this->bgColor, bgColor);
+  invalidateIfNotEqual(this->fgColor, fgColor);
   this->fgColor = fgColor;
   for (CanvasRef childCanvas: this->children) {
     childCanvas->setFgColor(fgColor);
@@ -503,6 +503,18 @@ uint16_t Canvas::convert2rgb565 (uint32_t color) {
 
 uint16_t Canvas::convert2rgb565 (uint8_t red, uint8_t green, uint8_t blue) {
   return (((red & 0b11111000)<<8) + ((green & 0b11111100)<<3)+(blue>>3));
+}
+
+uint16_t Canvas::getRed(uint16_t color) {
+  return (color >> 8)&0b11111000;
+}
+
+uint16_t Canvas::getGreen(uint16_t color) {
+  return (color >> 3)&0b11111100;
+}
+
+uint16_t Canvas::getBlue(uint16_t color) {
+  return (color<<3)&0b11111000;
 }
 
 #ifdef CANVAS_DEBUG

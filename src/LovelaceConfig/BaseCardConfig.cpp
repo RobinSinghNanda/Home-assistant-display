@@ -13,7 +13,7 @@ BaseCardConfig::BaseCardConfig() {
 BaseCardConfig::BaseCardConfig(const char * type, const char * title, const char * icon) {
     strlcpy(this->type, type, sizeof(this->type));
     strlcpy(this->title, title, sizeof(this->title));
-    strlcpy(this->icon, title, sizeof(this->icon));
+    strlcpy(this->icon, icon, sizeof(this->icon));
 }
 
 char * BaseCardConfig::getTitle() {

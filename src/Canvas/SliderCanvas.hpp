@@ -10,7 +10,13 @@
 #define SLIDER_HEIGHT 3
 #define SLIDER_TOUCHED_RADIUS 8
 #define SLIDER_KNOB_COLOR 0x03a9f4
-#define SLIDER_COLOR 0x6f6f6f
+#define SLIDER_COLOR 0x7f7f7f
+
+#define MASK_RB       63519 // 0b1111100000011111
+#define MASK_G         2016 // 0b0000011111100000
+#define MASK_MUL_RB 4065216 // 0b1111100000011111000000
+#define MASK_MUL_G   129024 // 0b0000011111100000000000
+#define MAX_ALPHA        64 // 6bits+1 with rounding
 
 class SliderCanvas;
 
@@ -36,6 +42,7 @@ class SliderCanvas : public Canvas{
       bool getDisabled();
       void invalidateValue();
       bool isValueInvalid();
+      uint16_t drawKnob(uint16_t x, uint16_t y, uint16_t bgColor);
       void onValueChange(SliderCanvasValueChangeCallback callback);
     protected:
       bool disabled;
@@ -55,6 +62,7 @@ class SliderCanvas : public Canvas{
       virtual bool draw();
       SliderCanvasValueChangeCallback onValueChangeCallback;
       bool onTouchEventCallback (TouchEvent event, TouchEventData eventData);
+      uint16_t alphaBlend(uint16_t fg, uint16_t bg, uint8 alpha);
 };
 
 #endif

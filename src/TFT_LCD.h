@@ -75,6 +75,7 @@ struct ScreenInfo {
 };
 
 enum TFTConnectionState {
+  TFT_FirstSetup,
   TFT_WifiDisconnected,
   TFT_WifiConnected,
   TFT_WifiAlert,
@@ -86,11 +87,13 @@ struct TFTConfig {
   ScreenConfig * mainScreenConfig;
   ScreenConfig * settingsScreenConfig;
   ScreenConfig * entityScreenConfig;
+  ScreenConfig * firstSetupScreenConfig;
   uint32_t require_update = 1;
   uint32_t screen_refresh = 1;
   int8_t curr_page_num;
   int8_t prev_page_num=-1;
   int8_t settings_page=0;
+  bool first_setup = 0;
   TFTConnectionState connectionState;
   int8_t dark_mode = 1;
   int8_t bottom_header = 0;
@@ -155,4 +158,5 @@ void tft_set_connection_state (TFTConnectionState state);
 void tft_set_bottom_bar (uint8_t state);
 uint32_t tft_set_page_num (uint8_t page_num);
 void tft_set_settings_page (uint8_t state);
+void tft_set_first_setup_page (uint8_t state);
 #endif

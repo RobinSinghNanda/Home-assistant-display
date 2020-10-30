@@ -8,11 +8,11 @@ BaseEntityRowCanvas::BaseEntityRowCanvas(Canvas * canvas, uint16_t id) : Canvas(
     iconCanvas->setHAlign(ALIGN_CENTER);
     iconCanvas->setVAlign(ALIGN_MIDDLE);
     iconCanvas->setWidth(SWICTH_ENTITY_MARGIN_LEFT*2 + SWICTH_ENTITY_ICON_WIDTH);
-    iconCanvas->setAutoInvert(true);
-    iconCanvas->setColorMask(ICON_PRIMARY_COLOR);
+    iconCanvas->setFgColor(ICON_PRIMARY_COLOR);
 
     nameCanvas->setVAlign(ALIGN_MIDDLE);
     nameCanvas->setX(iconCanvas->getRightX());
+    nameCanvas->setFont("Roboto-Regular24");
 }
 
 void BaseEntityRowCanvas::setIconPath(String iconPath) {
@@ -33,7 +33,6 @@ String BaseEntityRowCanvas::getIconPath() {
 
 void BaseEntityRowCanvas::setName(String name) {
     this->nameCanvas->setText(name);
-    
 }
 
 String BaseEntityRowCanvas::getName() {
@@ -43,7 +42,6 @@ String BaseEntityRowCanvas::getName() {
 void BaseEntityRowCanvas::setDarkMode(bool darkMode) {
     invalidateIfNotEqual(this->darkMode, darkMode);
     Canvas::setDarkMode(darkMode);
-    this->iconCanvas->setColorInvert(!darkMode);
 }
 
 void BaseEntityRowCanvas::onIconTouch(CanvasTouchCallback callback) {
@@ -52,4 +50,9 @@ void BaseEntityRowCanvas::onIconTouch(CanvasTouchCallback callback) {
 
 void BaseEntityRowCanvas::onNameTouch(CanvasTouchCallback callback) {
     this->nameCanvas->onTouch(callback);
+}
+
+void BaseEntityRowCanvas::setFgColor(uint16_t fgColor) {
+    this->iconCanvas->setFgColor(ICON_PRIMARY_COLOR);
+    this->nameCanvas->setFgColor(fgColor);
 }

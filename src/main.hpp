@@ -16,7 +16,7 @@
 #include "TFT_LCD.h"
 #include "Touch.h"
 
-#define SCREEN_SERVER_ENABLE 0
+#define SCREEN_SERVER_ENABLE 1
 
 
 //Function prototypes

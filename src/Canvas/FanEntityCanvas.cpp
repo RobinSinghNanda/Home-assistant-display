@@ -1,6 +1,7 @@
 #include "FanEntityCanvas.hpp"
 
 FanEntityCanvas::FanEntityCanvas(Canvas * canvas, uint16_t id) : SwitchEntityCanvas(canvas, id){
+    rowCanvas->setStateColor(false);
     fanSpeedSlider = new SliderCanvas(this, 0);
     fanSpeedSlider->setHeight(40);
     fanSpeedSlider->setY(rowCanvas->getBottomY());

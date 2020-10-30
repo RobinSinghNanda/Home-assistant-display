@@ -12,7 +12,6 @@ FanEntityRowCanvas::FanEntityRowCanvas(Canvas * canvas, uint16_t id) : SwitchEnt
     this->onStateChangeCallback = [](FanEntityRowCanvas*, bool, uint16_t) -> bool{return false;};
     this->stateCanvas->onStateChange(std::bind(&FanEntityRowCanvas::stateChangeCallback, this, _2));
     this->stateColor = false;
-    this->stateCanvas->setColorInvert(!this->darkMode);
 }
 
 void FanEntityRowCanvas::setSpeed(uint16_t speed) {
@@ -42,7 +41,6 @@ void FanEntityRowCanvas::setFanIconPath() {
     } else {
         this->stateCanvas->setPath("mdi:fan-off");
     }
-    this->stateCanvas->setColorInvert(!this->darkMode);
 }
 
 uint16_t FanEntityRowCanvas::getSpeed(){

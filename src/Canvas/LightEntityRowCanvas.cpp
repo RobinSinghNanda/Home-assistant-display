@@ -12,7 +12,6 @@ LightEntityRowCanvas::LightEntityRowCanvas(Canvas * canvas, uint16_t id) :Switch
     this->onStateChangeCallback = [](LightEntityRowCanvas*, bool, uint16_t) -> bool{return false;};
     this->stateCanvas->onStateChange(std::bind(&LightEntityRowCanvas::stateChangeCallback, this, _2));
     this->stateColor = true;
-    this->stateCanvas->setColorInvert(!this->darkMode);
 }
 
 void LightEntityRowCanvas::setBrightness(uint8_t brightness) {
@@ -126,10 +125,14 @@ void LightEntityRowCanvas::setBrightnessIconPath() {
     } else {
         this->stateCanvas->setPath("mdi:light-off");
     }
-    this->stateCanvas->setColorInvert(!this->darkMode);
 }
 
 bool LightEntityRowCanvas::stateChangeCallback (bool state) {
     this->setState(state);
     return this->onStateChangeCallback(this, state, brightness);
+}
+
+void LightEntityRowCanvas::setFgColor(uint16_t fgColor) {
+    this->SwitchEntityRowCanvas::setFgColor(fgColor);
+    this->stateCanvas->setFgColor(fgColor);
 }

@@ -11,8 +11,7 @@ ButtonsEntityRowCanvas::ButtonsEntityRowCanvas(Canvas * canvas, uint16_t id, uin
         buttons[i]->setWidth(buttonWidth);
         buttons[i]->setHAlign(ALIGN_CENTER);
         buttons[i]->setVAlign(ALIGN_MIDDLE);
-        buttons[i]->setAutoInvert(false);
-        buttons[i]->setColorMask(BUTTONS_PRIMARY_COLOR);
+        buttons[i]->setFgColor(BUTTONS_PRIMARY_COLOR);
     }
 }
 
@@ -42,4 +41,11 @@ void ButtonsEntityRowCanvas::setWidth(uint16_t width) {
 void ButtonsEntityRowCanvas::onTouch(CanvasTouchCallback callback, uint16_t index) {
     if (index<numButtons)
         this->buttons[index]->onTouch(callback);
+}
+
+void ButtonsEntityRowCanvas::setFgColor(uint16_t fgColor) {
+    Serial.println("Setting buttons color to "+String(fgColor));
+    for (uint8_t i=0;i<numButtons;i++) {
+        this->buttons[i]->setFgColor(ICON_PRIMARY_COLOR);
+    }
 }

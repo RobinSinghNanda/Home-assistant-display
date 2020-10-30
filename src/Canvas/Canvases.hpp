@@ -6,6 +6,7 @@
 #include "CustomSliderCanvas.hpp"
 #include "TextCanvas.hpp"
 #include "ImageCanvas.hpp"
+#include "QrCodeCanvas.hpp"
 #include "BaseEntityRowCanvas.hpp"
 #include "PageSelectorCanvas.hpp"
 #include "SwipeCanvas.hpp"

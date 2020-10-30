@@ -6,8 +6,9 @@ SensorEntityRowCanvas::SensorEntityRowCanvas(Canvas * canvas, uint16_t id) : Bas
     stateCanvas->alignRight();
     stateCanvas->setVAlign(ALIGN_MIDDLE);
     stateCanvas->setHAlign(ALIGN_CENTER);
+    stateCanvas->setFont("Roboto-Regular24");
     nameCanvas->horizontalAlign(iconCanvas, stateCanvas);
-    iconCanvas->setColorMask(convert2rgb565(0x44739e));
+    iconCanvas->setFgColor(ICON_PRIMARY_COLOR);
 }
 
 void SensorEntityRowCanvas::setState(String state) {
@@ -17,4 +18,9 @@ void SensorEntityRowCanvas::setState(String state) {
 
 String SensorEntityRowCanvas::getState() {
     return this->stateCanvas->getText();
+}
+
+void SensorEntityRowCanvas::setFgColor(uint16_t fgColor) {
+    this->BaseEntityRowCanvas::setFgColor(fgColor);
+    this->stateCanvas->setFgColor(fgColor);
 }

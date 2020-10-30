@@ -5,6 +5,8 @@
 
 class SwipeCanvas;
 
+
+
 enum SwipeDirection{
   SwipeInvalid = 0x00,
   SwipeUp = 0x10,

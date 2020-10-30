@@ -1,7 +1,7 @@
 #include "ScreenConfig.hpp"
 
 void ScreenConfig::addCard(BaseCardConfig * baseCardConfig) {
-    if (cards.size() <5) {
+    if (cards.size() < 5) {
         cards.insert(cards.end() , baseCardConfig);
     } else {
         Serial.println("Max 5 cards are allowed");

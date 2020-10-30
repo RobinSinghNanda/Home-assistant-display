@@ -8,6 +8,7 @@ class SensorEntityRowCanvas : public BaseEntityRowCanvas {
         SensorEntityRowCanvas(Canvas * canvas, uint16_t id);
         void setState(String state);
         String getState();
+        virtual void setFgColor(uint16_t fgColor);
     protected:
         TextCanvas * stateCanvas;
 };

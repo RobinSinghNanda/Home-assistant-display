@@ -1,8 +1,8 @@
 #include <Arduino.h>
 #include "TouchScreen.h"
 #include "Touch.h"
-#define YP 33 // must be an analog pin, use "An" notation!
-#define XM 32 // must be an analog pin, use "An" notation!
+#define YP 32 // must be an analog pin, use "An" notation!
+#define XM 33 // must be an analog pin, use "An" notation!
 #define YM 26 // can be a digital pin
 #define XP 25 // can be a digital pin
 
@@ -10,8 +10,6 @@ bool pressed = 0;
 
 
 TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
-
-
 
 CallbackFunction callback;
 

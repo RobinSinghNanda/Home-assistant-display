@@ -7,6 +7,7 @@
 #define PAGE_TYPE_SWITCH "switch"
 #define PAGE_TYPE_LIGHT "light"
 #define PAGE_TYPE_FAN  "fan"
+#define PAGE_TYPE_WIFI_QR "wifi-qr"
 #define PAGE_TYPE_HORIZONTAL_STACK "horizontal-stack"
 #define PAGE_TYPE_VERTICAL_STACK "vertical-stack"
 
