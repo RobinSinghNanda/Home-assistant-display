@@ -3,8 +3,12 @@
 A Home Assistant display based on ESP32. It uses Home Assistant's official Websockets API to fetech and upload states of the entites. The screens can be configured using lovelace's card json (yml converted to json).
 
 ## Screen samples
-![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/raw/main/images/main_screen.png?raw=true)
-![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/blob/main/images/sensors_screen.png?raw=true)<br/>
+![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/raw/main/images/main_screen_light.png?raw=true)
+![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/blob/main/images/sensors_screen_light.png?raw=true)
+![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/blob/main/images/display_setings_light.png?raw=true)<br/>
+![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/raw/main/images/main_screen_themed.png?raw=true)
+![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/blob/main/images/sensors_screen_themed.png?raw=true)
+![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/blob/main/images/display_settings_themed.png?raw=true)<br/>
 ![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/blob/main/images/light_subscreen.png?raw=true)
 ![alt text](https://github.com/RobinSinghNanda/Home-assistant-display/blob/main/images/light_subscreen2.png?raw=true)
 
