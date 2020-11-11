@@ -44,7 +44,6 @@ void ButtonsEntityRowCanvas::onTouch(CanvasTouchCallback callback, uint16_t inde
 }
 
 void ButtonsEntityRowCanvas::setFgColor(uint16_t fgColor) {
-    Serial.println("Setting buttons color to "+String(fgColor));
     for (uint8_t i=0;i<numButtons;i++) {
         this->buttons[i]->setFgColor(ICON_PRIMARY_COLOR);
     }

@@ -15,7 +15,7 @@ FanEntityRowCanvas::FanEntityRowCanvas(Canvas * canvas, uint16_t id) : SwitchEnt
 }
 
 void FanEntityRowCanvas::setSpeed(uint16_t speed) {
-    invalidateIfNotEqual(this->speed, speed);
+    returnIfEqual(this->speed, speed);
     tmpSpeed = speed;
     this->speed = speed;
     if (speed <= 0) {

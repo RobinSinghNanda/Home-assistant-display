@@ -1,8 +1,8 @@
 #include "HomeAssistant.hpp"
 #include "ConfigHelper.hpp"
+#include "Log.hpp"
 
-
-
+HomeAssistant homeAssistant(HOME_ASSITANT_WEBSOCKET, HOME_ASSITANT_AUTH_MESSAGE);
 
 const char * attributes_white_list [] = {"friendly_name", "speed", "icon", "device_class", "brightness", "min_mireds", "max_mireds", "rgb_color", "white_value", "color_temp"};
 
@@ -42,10 +42,7 @@ void HomeAssistant::send(String message) {
 
 
 void HomeAssistant::websocketsMessageCallback(WebsocketsMessage message) {
-  if (DEBUG_HOME_ASSITANT) {
-    Serial.print("Got Message: ");
-    Serial.println(message.data());
-  }
+  Log::log(LOG_LEVEL_DEBUG_MORE, D_LOG_HA "Message received %s", message.data().c_str());
   if (String(message.data()).indexOf("auth_required") >= 0) {
     this->send(this->auth_message);
   } else if (String(message.data()).indexOf("auth_ok") >= 0) {
@@ -59,9 +56,9 @@ void HomeAssistant::websocketsMessageCallback(WebsocketsMessage message) {
 
 void HomeAssistant::websocketsEventCallback(WebsocketsEvent event, String data) {
     if(event == WebsocketsEvent::ConnectionOpened) {
-      Serial.println("Connnection Opened");
+      Log::log(LOG_LEVEL_DEBUG, D_LOG_HA "Home assistant connected");
     } else if(event == WebsocketsEvent::ConnectionClosed) {
-      Serial.println("Connnection Closed");
+      Log::log(LOG_LEVEL_DEBUG, D_LOG_HA "Home assistant disconnected");
     } else if(event == WebsocketsEvent::GotPing) {
       client.pong();
     } else if(event == WebsocketsEvent::GotPong) {
@@ -77,9 +74,6 @@ void HomeAssistant::sync_states () {
 void HomeAssistant::sync_entity_state (char * entity_id) {
   String message = String("{\"id\":")+String(websockets_id_num)
     +String(",\"type\":\"get_states\",\"entity_id\":\"")+String(entity_id)+String("\"}");
-  if (DEBUG_HOME_ASSITANT) {
-    Serial.println(message);
-  }
   this->send(message);
   this->syncing = 1;
   this->lastRequestTime = millis();
@@ -92,9 +86,6 @@ void HomeAssistant::subscribe_to_state_changed (char * entity_id) {
   String message= String("{\"id\":")+String(websockets_id_num)
     +String(",\"type\":\"subscribe_events\",\"event_type\":\"state_changed\", \"entity_id\":\"")
     +String(entity_id)+String("\"}");
-  if (DEBUG_HOME_ASSITANT) {
-    Serial.println(message);
-  }
   this->syncing = 1;
   this->lastRequestTime = millis();
   pendingMessageIds.push_front(websockets_id_num);
@@ -112,7 +103,7 @@ void HomeAssistant::subscribe_to_states_changed () {
 void HomeAssistant::parseMessage(String message) {
   DeserializationError error = deserializeJson(json_doc, message);
   if (error) {
-    Serial.print(F("deserializeJson() failed: "));
+    Log::log(LOG_LEVEL_ERROR, D_LOG_HA "Deserialazation of message failed");
     return;
   }
   if (json_doc.containsKey("result")) {
@@ -146,7 +137,12 @@ void HomeAssistant::parseMessage(String message) {
       state_object = json_doc["result"][0].as<JsonObject>();
     }
     if (state_object.containsKey("state")) {
-      this->set_state(message_entity_id, state_object["state"].as<String>());
+      String prev_state_value = this->getState(message_entity_id);
+      String state_value = state_object["state"].as<String>();
+      if (prev_state_value != state_value) {
+        Log::log(LOG_LEVEL_INFO, D_LOG_HA "State updated for %s entity %s -> %s", message_entity_id.c_str(), prev_state_value.c_str(), state_value.c_str());
+        this->setState(message_entity_id, state_value);
+      }
     }
     if (state_object.containsKey("attributes")) {
       JsonObject attributes_object = state_object["attributes"];
@@ -155,7 +151,11 @@ void HomeAssistant::parseMessage(String message) {
         for(const char * whitelist_attribute: attributes_white_list) {
           if (attribute_name == String(whitelist_attribute)) {
             String prev_attribute_value = this->get_attribute(message_entity_id, attribute_name);
-            this->set_attribute(message_entity_id, attribute_name, kv.value().as<String>());
+            String attribute_value =  kv.value().as<String>();
+            if (prev_attribute_value != attribute_value) {
+              Log::log(LOG_LEVEL_INFO, D_LOG_HA "%s attribute updated for %s entity %s -> %s", attribute_name.c_str(), message_entity_id.c_str(), prev_attribute_value.c_str(), attribute_value.c_str());
+              this->set_attribute(message_entity_id, attribute_name, attribute_value);
+            }
             break;
           }
         }
@@ -259,7 +259,7 @@ void HomeAssistant::sync_state (String entity_id, String state) {
 }
 
 
-void HomeAssistant::set_state (String entity_id, String state) {
+void HomeAssistant::setState (String entity_id, String state) {
   if (this->get_entity_index(entity_id)!=-1) {
     int8_t index = this->get_entity_index(entity_id);
     if (index != -1) {
@@ -272,7 +272,7 @@ void HomeAssistant::set_state (String entity_id, String state) {
   }
 }
 
-String HomeAssistant::get_state (String entity_id) {
+String HomeAssistant::getState (String entity_id) {
   int8_t index = this->get_entity_index(entity_id);
   if (index != -1) {
     return homeassistantConfig.entites[index].state;
@@ -306,9 +306,7 @@ void HomeAssistant::set_attribute (String entity_id, String attribute_name, Stri
       homeassistantConfig.entites[index].num_attributes++;
     }
   } else {
-    if (DEBUG_HOME_ASSITANT) {
-      Serial.println(entity_id+" does not exists");
-    }
+    Log::log(LOG_LEVEL_ERROR, D_LOG_HA "%s entity does not exists", entity_id.c_str());
   }
 }
 
@@ -322,9 +320,7 @@ String HomeAssistant::get_attribute (String entity_id, String attribute_name) {
       return "";
     }
   } else {
-    if (DEBUG_HOME_ASSITANT) {
-      Serial.println(entity_id+" does not exists");
-    }
+    Log::log(LOG_LEVEL_ERROR, D_LOG_HA "%s entity does not exists", entity_id.c_str());
   }
   return "";
 }
@@ -366,10 +362,10 @@ int8_t HomeAssistant::get_attribute_index (HomeAssistantEntity &entity, String a
   return -1;
 }
 
-void HomeAssistant::add_entity (String entity_id) {
+void HomeAssistant::addEntity (String entity_id) {
   if (this->get_entity_index(entity_id) == -1) {
     if (homeassistantConfig.num_entites == MAX_NUM_ENTITES) {
-      Serial.println("Max number of states stored");
+      Log::log(LOG_LEVEL_ERROR, D_LOG_HA "Max number of states stored");
       return;
     }
     strlcpy(homeassistantConfig.entites[homeassistantConfig.num_entites].entity_id,
@@ -378,10 +374,6 @@ void HomeAssistant::add_entity (String entity_id) {
       "",sizeof(homeassistantConfig.entites[homeassistantConfig.num_entites].state));
     homeassistantConfig.entites[homeassistantConfig.num_entites].num_attributes = 0;
     homeassistantConfig.num_entites++;
-  } else {
-    if (DEBUG_HOME_ASSITANT) {
-    
-    }
   }
 }
 
@@ -395,9 +387,7 @@ void HomeAssistant::loop () {
           this->_eventsCallback(*this, HomeAssistantConnected);
         }
       }
-    
       this->client.poll();
-      
     } else {
       this->syncing = 0;
       this->_eventsCallback(*this, HomeAssistantDisconnected);
@@ -405,16 +395,37 @@ void HomeAssistant::loop () {
       this->connect();
     }
     xSemaphoreGive(pollingMutex);
-  } else {
-    Serial.println("Could not obtain the mutex");
   }
 }
 
-//TODO: not working
-void HomeAssistant::clear_cache() {
-  this->homeassistantConfig.num_entites = 0;
+void HomeAssistant::clearCache() {
+  for (uint8_t i=0;i<homeassistantConfig.num_entites;i++) {
+    memset(homeassistantConfig.entites[i].state, 0, sizeof(homeassistantConfig.entites[i].state));
+    homeassistantConfig.entites[i].num_attributes = 0;
+  }
   this->_eventsCallback(*this, HomeAssistantSyncing);
   if (this->connected) {
     sync_states();
   }
 }
+
+// void HomeAssistant::::saveCache() {
+// #ifndef FIRMWARE_MINIMAL
+//     if ((this->computeCrc32() != this->crc32)) {
+//         this->saveCount++;
+//         updateTimestamp();
+//         updateCrc32();
+//         NvmHelper::NvmSave("main", "settings", this, sizeof(Settings));
+//     }
+// #endif  // FIRMWARE_MINIMAL
+// }
+
+// void Settings::loadCache() {
+//     NvmHelper::NvmLoad("main", "settings", this, sizeof(Settings));
+// #ifndef FIRMWARE_MINIMAL
+//     if ((this->magic != (uint16_t)SETTINGS_MAGIC)) {
+//         Serial.println("Using defualt settings");
+//         this->setDefault();
+//     }
+// #endif  // FIRMWARE_MINIMAL
+// }

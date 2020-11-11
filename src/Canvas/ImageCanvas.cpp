@@ -4,6 +4,7 @@ ImageCanvas::ImageCanvas(Canvas * canvas, uint16_t id) : Canvas(canvas, id) {
     this->path = "";
     this->fgColor = DARK_THEME_ICON_COLOR;
     this->imageType = ImageTypeJpg;
+    this->maskColor = 0xFFFF;
 }
 
 void ImageCanvas::setPath(String path) {
@@ -11,6 +12,10 @@ void ImageCanvas::setPath(String path) {
     invalidateIfNotEqual(this->path, path);
     this->path = path;
     this->imageType = ImageTypeJpg;
+  } else if (path.indexOf(".bin") >= 0) {
+    invalidateIfNotEqual(this->path, path);
+    this->path = path;
+    this->imageType = ImageTypeBin;
   } else {
     String s_icon = "/"+path+".bin";
     s_icon.replace(":","/");
@@ -26,6 +31,15 @@ void ImageCanvas::setDarkMode(bool darkMode) {
   invalidateIfNotEqual(this->darkMode, darkMode);
   this->darkMode = darkMode;
   this->invalidate();
+}
+
+void ImageCanvas::setMaskColor(uint16_t maskColor) {
+  invalidateIfNotEqual(this->maskColor, maskColor);
+  this->maskColor = maskColor;
+}
+
+uint16_t ImageCanvas::getMaskColor() {
+  return this->maskColor;
 }
 
 bool ImageCanvas::draw() {
@@ -96,7 +110,7 @@ void ImageCanvas::renderBin() {
 
   uint16_t width = 0;
   uint16_t height = 0;
-
+  uint16_t format = 0;
   if (file.available()) {
     int num = file.read();
     if (num == -1) {
@@ -104,8 +118,9 @@ void ImageCanvas::renderBin() {
       file.close();
       return;
     }
-    if (num != 1) {
-      Serial.print("Format not = 1");
+    format = num;
+    if (num >= 5 || num <= 0) {
+      Serial.print("Format not supported");
       file.close();
       return;
     }
@@ -142,24 +157,66 @@ void ImageCanvas::renderBin() {
     ypos = this->getDrawY() + this->getDrawableHeight() - height;
   }
   uint8_t pImg;
-
   tft->startWrite();
 
   tft->setAddrWindow(xpos, ypos, width, height);
 
   uint32_t num_pixels = width*height;
+  if (format == 1) {
+    while (file.available() && num_pixels > 0) {
+      pImg = file.read();
+      uint8_t color8Bit;
+      color8Bit = (pImg<<4)&0xF0;
+      tft->pushColor(tft->alphaBlend(color8Bit, this->fgColor, this->bgColor));
+      color8Bit = pImg&0xF0;
+      tft->pushColor(tft->alphaBlend(color8Bit, this->fgColor, this->bgColor));
+      num_pixels--;
+    }
+  } else if (format == 2) {
+    while (file.available() && num_pixels > 0) {
+      pImg = file.read();
+      tft->pushColor(tft->alphaBlend(pImg, this->fgColor, this->bgColor));
+      num_pixels--;
+    }
+  } else if (format == 3) {
+    while (file.available() && num_pixels > 0) {
+      pImg = file.read();
+      uint16_t red = pImg*this->getRed(this->fgColor);
+      uint16_t green = pImg*this->getGreen(this->fgColor);
+      uint16_t blue = pImg*this->getBlue(this->fgColor);
+      pImg = file.read();
+      red += pImg*this->getRed(this->bgColor);
+      green += pImg*this->getGreen(this->bgColor);
+      blue += pImg*this->getBlue(this->bgColor);
+      red >>= 8;
+      green >>= 8;
+      blue >>= 8;
+      tft->pushColor(this->convert2rgb565(red, green, blue));
+      num_pixels--;
+    }
+  } else if (format == 4) {
+    while (file.available() && num_pixels > 0) {
+      pImg = file.read();
+      uint16_t red = pImg*this->getRed(this->fgColor);
+      uint16_t green = pImg*this->getGreen(this->fgColor);
+      uint16_t blue = pImg*this->getBlue(this->fgColor);
+      pImg = file.read();
+      red += pImg*this->getRed(this->bgColor);
+      green += pImg*this->getGreen(this->bgColor);
+      blue += pImg*this->getBlue(this->bgColor);
+      pImg = file.read();
+      red += pImg*this->getRed(this->maskColor);
+      green += pImg*this->getGreen(this->maskColor);
+      blue += pImg*this->getBlue(this->maskColor);
+      red >>= 8;
+      green >>= 8;
+      blue >>= 8;
+      tft->pushColor(this->convert2rgb565(red, green, blue));
+      num_pixels--;
+    }
+  } 
   
-  while (file.available() && num_pixels > 0) {
-    pImg = file.read();
-    uint8_t color8Bit;
-    color8Bit = (pImg<<4)&0xF0;
-    tft->pushColor(this->alphaBlend(this->fgColor, this->bgColor, color8Bit));
-    color8Bit = pImg&0xF0;
-    tft->pushColor(this->alphaBlend(this->fgColor, this->bgColor, color8Bit));
-    num_pixels--;
-  }
   tft->endWrite();
-
   return;
 }
 

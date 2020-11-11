@@ -5,21 +5,21 @@
 		"icon": "mdi:chevron-left",
 		"entities": [{
 				"name": "Dark mode",
-				"icon": "mdi:theme-dark",
-				"entity": "settings.dark_mode"
+				"icon": "mdi:theme-light-dark",
+				"entity": "input_boolean.had38f2_dark_mode"
 			},{
 				"name": "Clear cache",
-				"icon": "mdi:test",
-				"entity": "settings.clear cache"
+				"icon": "mdi:cached",
+				"entity": "input_boolean.had38f2_clear_cache"
 			},{
 				"name": "Bottom header",
-				"icon": "mdi:test",
-				"entity": "settings.bottom_header"
+				"icon": "mdi:page-layout-footer",
+				"entity": "input_boolean.had38f2_bottom_bar"
 			},{
 				"name": "Restart",
 				"icon": "mdi:restart",
-				"entity": "settings.restart"
-			}		
+				"entity": "input_boolean.had38f2_restart"
+			}
 		]
 	}
 ]

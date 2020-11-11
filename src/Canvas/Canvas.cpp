@@ -462,19 +462,20 @@ bool Canvas::redraw () {
       } else {
         Serial.println("Could not obtain the tft Mutex");
       }
-  }
-  if (!this->visible && this->invalidated) {
+  } else if (!this->visible && this->invalidated) {
     tft->fillRect(this->x, this->y, this->width, this->height, this->bgColor);
   }
   this->invalidated = 0;
-  if (this->visible) {
+  if (this->visible && this->changed) {
     redrawChildren();
   }
   return result;
 }
 
 bool Canvas::draw() {
-  drawBackground();
+  if (drawBackgroundEnable) {
+    drawBackground();
+  }
   #ifdef CANVAS_DEBUG
   this->drawDebugBorder();
   #endif
@@ -563,6 +564,13 @@ void Canvas::invalidate() {
   for (CanvasRef childCanvas: this->children) {
     childCanvas->invalidate();
   }
+  this->setChanged();
+}
+
+void Canvas::setChanged() {
+  this->changed = true;
+  if (this->parent != nullptr)
+    this->parent->setChanged();
 }
 
 bool Canvas::isInvalid() {
@@ -659,4 +667,12 @@ Canvas* Canvas::get(uint16_t id) {
     }
   }
   return NULL;
+}
+
+void Canvas::setDrawBackgroundEnable(bool enable) {
+  this->drawBackgroundEnable = enable;
+}
+
+bool Canvas::isDrawBackgroundEnabled() {
+  return this->drawBackgroundEnable;
 }

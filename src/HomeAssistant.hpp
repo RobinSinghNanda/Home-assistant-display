@@ -50,16 +50,16 @@ class HomeAssistant {
     void connect();
     void onEvent(const HomeAssistantEventCallback callback);
     void onSyncMessage(const HomeAssistantSyncMessageCallback callback);
-    void add_entity (String entity_id);
-    void set_state (String entity_id, String state);
-    String get_state (String entity_id);
+    void addEntity (String entity_id);
+    void setState (String entity_id, String state);
+    String getState (String entity_id);
     String get_state (HomeAssistantEntity &entity);
     void set_attribute (String entity_id, String attribute_name, String attribute_value);
     String get_attribute (String entity_id, String attribute_name);
     String get_attribute (HomeAssistantEntity &entity, String attribute_name);
     void sync_state (String entity_id, String state);
     void loop ();
-    void clear_cache();
+    void clearCache();
   private:
     String wss_host;
     String auth_message;
@@ -89,6 +89,6 @@ class HomeAssistant {
     void send(String message);
 };
 
-
+extern HomeAssistant homeAssistant;
 
 #endif

@@ -13,7 +13,10 @@ void TextCanvas::setFont(String font) {
 }
 
 bool TextCanvas::draw() {
-  this->tft->fillRect(this->x, this->y, this->width, this->height, this->bgColor);
+  if (refreshBackground || refreshBackgroundOnce) {
+    this->tft->fillRect(this->x, this->y, this->width, this->height, this->bgColor);
+    this->refreshBackgroundOnce = false;
+  }
   if (this->getDrawableWidth() == 0 || this->getDrawableHeight() == 0) {
     return false;
   }
@@ -23,11 +26,9 @@ bool TextCanvas::draw() {
   if (textHeight > this->getDrawableHeight()) {
     return false;
   }
-  if (fontType == FONT_STRING) {
-    tft->setTextColor(this->fgColor, this->bgColor);
+  tft->setTextColor(this->fgColor, this->bgColor);
+  if (String(tft->fontFile.name()) != "/"+this->stringFont+".vlw") {
     tft->loadFont(this->stringFont);
-  } else {
-    return false;
   }
   uint16_t textWidth = tft->textWidth(text);
   if (textWidth > this->getDrawableWidth()) {

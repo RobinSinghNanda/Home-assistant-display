@@ -24,9 +24,12 @@ class ImageCanvas : public Canvas {
     void setPath(String path);
     String getPath();
     void setDarkMode(bool darkMode);
+    void setMaskColor(uint16_t maskColor);
+    uint16_t getMaskColor();
   protected:
     String path;
     ImageType imageType;
+    uint16_t maskColor;
     void renderJPEG();
     void renderBin();
     virtual bool draw();

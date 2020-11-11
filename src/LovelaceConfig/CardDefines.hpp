@@ -10,6 +10,8 @@
 #define PAGE_TYPE_WIFI_QR "wifi-qr"
 #define PAGE_TYPE_HORIZONTAL_STACK "horizontal-stack"
 #define PAGE_TYPE_VERTICAL_STACK "vertical-stack"
+#define PAGE_TYPE_DIGITAL_CLOCK "digital-clock"
+#define PAGE_TYPE_ANALOG_CLOCK "analog-clock"
 
 //row types
 #define ENTITES_ROW_TYPE_INVALID NULL

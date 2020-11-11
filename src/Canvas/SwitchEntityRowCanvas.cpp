@@ -42,6 +42,30 @@ bool SwitchEntityRowCanvas::getStateColor() {
     return this->stateColor;
 }
 
+void SwitchEntityRowCanvas::setSecondaryColor(uint16_t color) {
+    this->stateCanvas->setSecondaryColor(color);
+}
+
+uint16_t SwitchEntityRowCanvas::getSecondaryColor() {
+    return this->stateCanvas->getSecondaryColor();
+}
+
+void SwitchEntityRowCanvas::setSurfaceColor(uint16_t color) {
+    this->stateCanvas->setSurfaceColor(color);
+}
+
+uint16_t SwitchEntityRowCanvas::getSurfaceColor() {
+    return this->stateCanvas->getSurfaceColor();
+}
+
+void SwitchEntityRowCanvas::setOnSurfaceColor(uint16_t color) {
+    this->stateCanvas->setOnSurfaceColor(color);
+}
+
+uint16_t SwitchEntityRowCanvas::getOnSurfaceColor() {
+    return this->stateCanvas->getOnSurfaceColor();
+}
+
 void SwitchEntityRowCanvas::setIconColor() {
     if (this->stateCanvas->getDisabled()) {
         this->iconCanvas->setFgColor(convert2rgb565((this->darkMode)?0x6f6f6f:0xbdbdbd));

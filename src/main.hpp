@@ -14,6 +14,7 @@
 #include "TouchScreen.h"
 #include "TFT_LCD.h"
 #include "Touch.h"
+#include "WebServer.hpp"
 
 #define SCREEN_SERVER_ENABLE 1
 
@@ -21,9 +22,16 @@
 //Function prototypes
 void setup_wifi();
 void wifi_loop();
-void homeAssistantEventCallback (HomeAssistant &assistant, HomeAssistantEvent event);
-void homeAssistantSyncMessageCallback (HomeAssistant &assistant, String entity_id, HomeAssistantEntity entity, HomeAssistantEntity  prevEntity);
+
 void add_entities (ScreenConfig * screenConfig);
 void lcdTaskCode( void * pvParameters);
 void touchTaskCode( void * pvParameters);
+void WifiManager_start();
+#ifndef FIRMWARE_MINIMAL
+void homeAssistantEventCallback (HomeAssistant &assistant, HomeAssistantEvent event);
+void homeAssistantSyncMessageCallback (HomeAssistant &assistant, String entity_id, HomeAssistantEntity entity, HomeAssistantEntity  prevEntity);
+void homeAssistantTaskCode(void * pvParameters);
+void getSettingsScreenConfig(ScreenConfig * settingsScreenConfig);
+void updateEntityStates(bool forceSync = false);
+#endif
 #endif

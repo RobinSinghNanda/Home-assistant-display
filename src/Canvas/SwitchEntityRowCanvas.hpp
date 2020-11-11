@@ -13,6 +13,12 @@ class SwitchEntityRowCanvas : public BaseEntityRowCanvas {
         bool getState();
         void setDisabled(bool disabled);
         bool getDisabled();
+        void setSecondaryColor(uint16_t color);
+        uint16_t getSecondaryColor();
+        void setSurfaceColor(uint16_t color);
+        uint16_t getSurfaceColor();
+        void setOnSurfaceColor(uint16_t color);
+        uint16_t getOnSurfaceColor();
     protected:
         bool stateColor = true;
         SwitchCanvas * stateCanvas;

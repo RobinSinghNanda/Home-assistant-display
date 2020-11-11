@@ -14,6 +14,10 @@
 #define SWITCH_ICON_OFF_DARK "/img/sw-off.jpg"
 #define SWITCH_ICON_OFF_LIGHT "/img/sw-off-li.jpg"
 
+#define SWITCH_ICON_UNAVAIABLE "/img/sw-off-un.bin"
+#define SWITCH_ICON_ON "/img/sw-on.bin"
+#define SWITCH_ICON_OFF "/img/sw-off.bin"
+
 class SwitchCanvas;
 
 typedef std::function<bool(SwitchCanvas*, bool)> SwitchCanvasStateChangeCallback;
@@ -30,10 +34,19 @@ class SwitchCanvas: public ImageCanvas {
       void onStateChange(SwitchCanvasStateChangeCallback callback);
       virtual void setDarkMode(bool darkMode);
       void resetIcon();
+      void setSecondaryColor(uint16_t color);
+      uint16_t getSecondaryColor();
+      void setSurfaceColor(uint16_t color);
+      uint16_t getSurfaceColor();
+      void setOnSurfaceColor(uint16_t color);
+      uint16_t getOnSurfaceColor();
     private:
       bool state = false;
       bool disabled = true;
       void setImagePath();
+      uint16_t secondaryColor;
+      uint16_t surfaceColor;
+      uint16_t onSurfaceColor;
       SwitchCanvasStateChangeCallback onStateChangeCallback;
     protected:
       bool onTouchEventCallback (TouchEvent event, TouchEventData eventData); 

@@ -7,6 +7,10 @@ SwitchCanvas::SwitchCanvas(Canvas * canvas, uint16_t id) : ImageCanvas(canvas, i
     this->disabled = true;
     this->onStateChangeCallback = [](SwitchCanvas*, bool)->bool{return false;};
     this->setImagePath();
+    this->maskColor = TFT_WHITE;
+    this->secondaryColor = this->convert2rgb565(0x03a9f4);
+    this->surfaceColor = TFT_WHITE;
+    this->onSurfaceColor = TFT_BLACK;
     onTouch(std::bind(&SwitchCanvas::onTouchEventCallback, this, _2, _3));
 }
 
@@ -68,12 +72,44 @@ bool SwitchCanvas::draw() {
 
 void SwitchCanvas::setImagePath() {
     if (this->disabled) {
-      this->ImageCanvas::setPath((this->darkMode)?SWITCH_ICON_UNAVAIABLE_DARK:SWITCH_ICON_UNAVAIABLE_LIGHT);
+        this->ImageCanvas::setPath(SWITCH_ICON_UNAVAIABLE);
+        this->setFgColor(surfaceColor);
+        this->setMaskColor(onSurfaceColor); 
     } else if (this->state) {
-      this->ImageCanvas::setPath((this->darkMode)?SWITCH_ICON_ON_DARK:SWITCH_ICON_ON_LIGHT);
+        this->ImageCanvas::setPath(SWITCH_ICON_ON);
+        this->setFgColor(secondaryColor);
     } else {
-      this->ImageCanvas::setPath((this->darkMode)?SWITCH_ICON_OFF_DARK:SWITCH_ICON_OFF_LIGHT);
+        this->ImageCanvas::setPath(SWITCH_ICON_OFF);
+        this->setFgColor(surfaceColor);
+        this->setMaskColor(onSurfaceColor); 
     }
+}
+
+void SwitchCanvas::setSecondaryColor(uint16_t color){
+    this->secondaryColor = color;
+    setImagePath();
+}
+
+uint16_t SwitchCanvas::getSecondaryColor() {
+    return this->secondaryColor;
+}
+
+void SwitchCanvas::setSurfaceColor(uint16_t color) {
+    this->surfaceColor = color;
+    setImagePath();
+}
+
+uint16_t SwitchCanvas::getSurfaceColor() {
+    return this->surfaceColor;
+}
+
+void SwitchCanvas::setOnSurfaceColor(uint16_t color) {
+    this->onSurfaceColor = color;
+    setImagePath();
+}
+
+uint16_t SwitchCanvas::getOnSurfaceColor() {
+    return this->onSurfaceColor;
 }
 
 void SwitchCanvas::onStateChange(SwitchCanvasStateChangeCallback callback) {

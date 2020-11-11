@@ -2,17 +2,22 @@
 
 SensorEntityRowCanvas::SensorEntityRowCanvas(Canvas * canvas, uint16_t id) : BaseEntityRowCanvas(canvas, id) {
     stateCanvas = new TextCanvas(this, 2);
-    stateCanvas->setWidth(SWITCH_ICON_WIDTH + SWICTH_ENTITY_MARGIN_RIGHT + SWICTH_ENTITY_MARGIN_RIGHT);
+    stateCanvas->setWidth(this->getWidth()/3);
     stateCanvas->alignRight();
+    stateCanvas->setMarginRight(10);
     stateCanvas->setVAlign(ALIGN_MIDDLE);
-    stateCanvas->setHAlign(ALIGN_CENTER);
+    stateCanvas->setHAlign(ALIGN_RIGHT);
     stateCanvas->setFont("Roboto-Regular24");
     nameCanvas->horizontalAlign(iconCanvas, stateCanvas);
     iconCanvas->setFgColor(ICON_PRIMARY_COLOR);
 }
 
 void SensorEntityRowCanvas::setState(String state) {
-    invalidateIfNotEqual(this->stateCanvas->getText(), state);
+    if (state.length() > 10) {
+        this->stateCanvas->setFont("Roboto-Regular12");
+    } else {
+        this->stateCanvas->setFont("Roboto-Regular24");
+    }
     this->stateCanvas->setText(state);
 }
 

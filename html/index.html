@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="\“en\“" class=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+  <title>Tasmota-Configure WiFi</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@5.8.55/css/materialdesignicons.min.css">
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/yamljs/0.3.0/yaml.min.js"></script>
+     <style>
+  #ed{
+     width:100%;
+     height:320px;
+     border-radius: 0 0 0.3rem 0.3rem;
+  }
+
+  .tabb{
+     margin:auto;
+  }
+
+  .iwrap{
+     width:40px;
+     height:40px;
+     display:inline-block;
+     text-align:center;
+  }
+
+  .ic{
+     font-size:24px;
+     margin:auto;
+     line-height:40px;
+  }
+
+  .row{
+     height:40px;
+  }
+
+  #header{
+     height:40px;
+     width:auto;
+  }
+
+  .text{
+     font-family:'Roboto',sans-serif;
+     font-size:24px;
+     user-select:none;
+  }
+
+  .screen{
+     height:240px;
+     width:320px;
+     background-color:#000000;
+     display:grid;
+     margin:auto;
+     margin-top:20px;
+     border-radius: 0.3rem;
+  }
+  .screen div{
+    padding:0px;
+  }
+
+  .body{
+     margin:0px;
+     height:200px;
+  }
+
+  .ecard{
+     height:200px;
+     width:100%;
+     color:red;
+     text-align:center;
+  }
+
+  .erow{
+     height:40px;
+     width:100%;
+     color:red;
+     text-align:left;
+     font-size:12px;
+     margin:0px;
+  }
+
+  .erow p{
+     vertical-align:middle;
+     display:inline-block;
+  }
+
+  .sw{
+     margin:auto;
+     position:absolute;
+     top:0;
+     bottom:0;
+     left:0;
+     right:0;
+     user-select:none;
+  }
+
+  .sww{
+     height:40px;
+     float:right;
+     width:60px;
+     position:relative;
+  }
+
+  .btnG label{
+     padding:5px 13px;
+     cursor:pointer;
+     color:#757575;
+     transition:all 0.2s;
+     font-size:24px;
+  }
+
+  .btn:hover{
+     background-color:#DDDDDD;
+  }
+
+  .btn{
+     height:40px;
+     width:40px;
+     display:inline-block;
+     text-align:center;
+  }
+
+  .btnG label:hover{
+     background-color:#DDDDDD;
+  }
+
+  input[name='cS']{
+     display:none;
+  }
+
+  input[name='cS']:checked+label{
+     border-bottom:#5dbcd2 solid;
+  }
+
+  .navbar{
+     width:100%;
+     margin:auto;
+     background-color: white;
+     padding:0px;
+     padding-bottom:1px;
+     border-radius: 0.3rem 0.3rem 0 0;
+  }
+  </style>
+    
+  <script>
+  function eb(s){
+    return document.getElementById(s);
+  }
+
+  function qs(s){
+    return document.querySelector(s);
+  }
+
+  function sp(i){
+    eb(i).type=(eb(i).type==='text'?'password':'text');
+  }
+
+  function wl(f){
+    window.addEventListener('load',f);
+  }
+  </script>
+  <script src="cards.js"></script>
+</head>
+   <body>
+  <div style="text-align:left;color:#FFFFFF;min-width:340px;">
+    <div class="navbar">
+    <span class="mdi mdi-close ic btn" onclick="rC()" style="color:#753535;"></span>
+    <span id="cas" class="btnG tabb"></span>
+    <span class="mdi mdi-plus ic btn" onclick="aC()" style="color:#357535;float:right;"></span>
+    </div>
+    <pre id="ed" style="margin:auto;"></pre>
+    <span id="screen" class='screen'></span>
+  </div>
+   </body
+></html>

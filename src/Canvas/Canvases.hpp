@@ -18,5 +18,6 @@
 #include "SwitchEntityCanvas.hpp"
 #include "LightEntityCanvas.hpp"
 #include "FanEntityCanvas.hpp"
+#include "DigitalClockCanvas.hpp"
 
 #endif // __CANVASES_H__

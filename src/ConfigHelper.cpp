@@ -193,7 +193,7 @@ void loadScreenConfiguration(const char *filename, ScreenConfig * screenConfig) 
   }
   configFile.close();
 }
-
+#ifndef FIRMWARE_MINIMAL
 void loadCachedStateConfiguration(const char *filename, HomeAssistantConfig * homeassistantConfig) {
   fs::File configFile = SPIFFS.open(filename, "r");
 
@@ -297,3 +297,4 @@ void printCachedStateConfiguration(HomeAssistantConfig * homeassistantConfig) {
   }
   Serial.println("#Home assistant state end");
 }
+#endif

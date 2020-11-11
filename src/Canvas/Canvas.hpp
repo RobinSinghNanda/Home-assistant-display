@@ -126,7 +126,7 @@ class Canvas {
     void alignRight(Canvas * canvas);
     void alignRight();
     void horizontalAlign(Canvas * leftCanvas, Canvas * rightCanvas);
-    void setBgColor(uint16_t bgColor);
+    virtual void setBgColor(uint16_t bgColor);
     uint16_t getBgColor(); 
     virtual void setFgColor(uint16_t fgColor);
     uint16_t getFgColor(); 
@@ -138,6 +138,9 @@ class Canvas {
     uint16_t getRed(uint16_t color);
     uint16_t getGreen(uint16_t color);
     uint16_t getBlue(uint16_t color);
+    void setDrawBackgroundEnable(bool enable);
+    bool isDrawBackgroundEnabled();
+    void setChanged();
   protected:
     SemaphoreHandle_t tftMutex;
     list<Canvas *> children;
@@ -161,7 +164,9 @@ class Canvas {
     CanvasVerticalAlignment vAlign;
     bool visible = 1;
     bool invalidated = 1;
+    bool changed = 0;
     bool darkMode = 0;
+    bool drawBackgroundEnable = false;
     bool add(Canvas * childCanvas);
     virtual bool draw();
     uint32_t counter=0;

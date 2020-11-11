@@ -26,6 +26,8 @@ class TextCanvas : public Canvas {
       String text = "";
       TextFontType fontType = FONT_INVALID;
       String stringFont;
+      bool refreshBackground = true;
+      bool refreshBackgroundOnce = false;
       virtual bool draw();
       uint16_t getCursorX(String str);
       uint16_t getCursorY();

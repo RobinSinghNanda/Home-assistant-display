@@ -2,10 +2,15 @@
 #define TFT_LCD_H
 
 #include <TFT_eSPI.h> 
-
 #include "ScreenConfig.hpp"
+#ifndef FIRMWARE_MINIMAL
 #include "Canvas/Canvases.hpp"
+#else
+#include "Canvas/Canvas.hpp"
+#endif
+#ifndef FIRMWARE_MINIMAL
 #include "HomeAssistant.hpp"
+#endif
 
 #define NUM_TOUCH_REGIONS 10
 
@@ -68,11 +73,6 @@
 #define ROW_TEXT_MARGIN_LEFT 5
 #define ROW_TEXT_MARGIN_BOTTOM 25
 
-struct ScreenInfo {
-  int8_t curr_page_num;
-  int8_t prev_page_num;
-};
-
 enum TFTConnectionState {
   TFT_FirstSetup,
   TFT_WifiDisconnected,
@@ -82,23 +82,31 @@ enum TFTConnectionState {
   TFT_HaSyncing
 };
 
+enum ScreenPageType {
+  ScreenPageBoot,
+  ScreenPageSetup,
+  ScreenPageScreenSaver,
+  #ifndef FIRMWARE_MINIMAL
+  ScreenPageMain,
+  ScreenPageEntity,
+  ScreenPageSettings,
+  #endif
+};
+
+enum ScreenOrientation {
+  ScreenPortrait = 0,
+  ScreenLandscapeInverted = 1,
+  ScreenPortraitInverted = 2,
+  ScreenLandscape = 3,
+  ScreenOrientationInvalid = 4
+};
+
 struct TFTConfig {
   ScreenConfig * mainScreenConfig;
   ScreenConfig * settingsScreenConfig;
   ScreenConfig * entityScreenConfig;
-  ScreenConfig * firstSetupScreenConfig;
-  uint32_t require_update = 1;
-  uint32_t screen_refresh = 1;
-  int8_t curr_page_num;
-  int8_t prev_page_num=-1;
-  int8_t settings_page=0;
-  bool first_setup = 0;
-  TFTConnectionState connectionState;
-  int8_t dark_mode = 1;
-  int8_t bottom_header = 0;
-  int8_t rotation = 3;
-  int8_t prev_rotation = 3;
-  int8_t entityPage = 0;
+  ScreenConfig * setupScreenConfig;
+  ScreenConfig * screenSaverScreenConfig;
 };
 
 
@@ -131,7 +139,7 @@ struct TouchBox {
 void tft_lcd_setup(ScreenConfig * mainScreenConfig, ScreenConfig * settingsScreenConfig);
 void buildHeaderCanvas (TFTConfig * tftConfig, Canvas headerCanvas);
 void tft_lcd_setup(ScreenConfig * mainScreenConfig, ScreenConfig * settingsScreenConfig);
-void set_screen_rotation (int8_t rotation);
+void tftSetScreenOrientation (ScreenOrientation rotation);
 uint32_t drawRow (TFTConfig * tftConfig, BaseRowConfig * row, Canvas * rowCanvas, Text &name, Image &icon, Image &state, Text &stateText);
 ScreenConfig * getScreenConfig (TFTConfig * tftConfig);
 uint32_t buildBodyCanvas (TFTConfig * tftConfig, Canvas * bodyCanvas);
@@ -140,9 +148,6 @@ uint32_t buildScreenCanvas(Canvas * screenCanvasG);
 void buildHeaderCanvas (TFTConfig * tftConfig, Canvas * headerCanvas);
 uint32_t setScreenCanvasState (Canvas * screenCanvasG);
 void setHeaderCanvasState(TFTConfig * tftConfig, Canvas * headerCanvas);
-bool handle_touch_header_setttings(Canvas *canvas, TouchEvent event, TouchEventData eventData);
-bool handle_page_value_change (PageSelectorCanvas *canvas, uint16_t selectedPage, uint16_t prevSelectedPage);
-bool handle_touch_header_page(Canvas *canvas, TouchEvent event, TouchEventData eventData);
 bool handle_touch(TouchEvent event, TouchEventData eventData);
 void set_row_state (String entity_id, String state);
 String get_row_state (String entity_id);
@@ -150,12 +155,16 @@ String get_row_attribute (String entity_id, String attribute_name);
 void set_row_attribute (String entity_id, String attribute_name, String attribute_value);
  
 uint16_t convert2rgb565 (uint32_t color);
-void tft_require_update ();
-void tft_screen_refresh ();
 void tft_set_dark_mode(uint8_t dark_mode);
-void tft_set_connection_state (TFTConnectionState state);
 void tft_set_bottom_bar (uint8_t state);
 uint32_t tft_set_page_num (uint8_t page_num);
-void tft_set_settings_page (uint8_t state);
+void tft_set_settings_page (bool state);
 void tft_set_first_setup_page (uint8_t state);
+
+#ifndef FIRMWARE_MINIMAL
+bool handle_page_value_change (PageSelectorCanvas *canvas, uint16_t selectedPage, uint16_t prevSelectedPage);
+bool handle_touch_header_page(Canvas *canvas, TouchEvent event, TouchEventData eventData);
+bool handle_touch_header_setttings(Canvas *canvas, TouchEvent event, TouchEventData eventData);
+#endif
+
 #endif

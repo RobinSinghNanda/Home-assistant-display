@@ -15,7 +15,7 @@ LightEntityRowCanvas::LightEntityRowCanvas(Canvas * canvas, uint16_t id) :Switch
 }
 
 void LightEntityRowCanvas::setBrightness(uint8_t brightness) {
-    invalidateIfNotEqual(this->brightness, brightness);
+    returnIfEqual(this->brightness, brightness);
     tmpBrightness = brightness;
     this->brightness = brightness;
     if (brightness <= 0) {
