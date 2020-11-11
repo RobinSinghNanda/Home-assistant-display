@@ -27,7 +27,10 @@ class PageSelectorCanvas : public Canvas {
       bool getLimitStep();
       void setTempPosition(double tempPosition);
       double getTempPosition();
+      void setSelectedColor(uint16_t color);
+      uint16_t getSelectedColor();
     protected:
+      uint16_t selectedColor;
       double tempPosition;
       uint16_t numPages;
       uint16_t selectedPage;
@@ -37,7 +40,7 @@ class PageSelectorCanvas : public Canvas {
       virtual bool draw();
       PageSelectorCanvasStateChangeCallback onValueChangeCallback;
       bool onTouchEventCallback (TouchEvent event, TouchEventData eventData);
-      void fillCircle (uint16_t x, uint16_t y, uint16_t color, bool invert);
+      void fillCircle (uint16_t x, uint16_t y, uint16_t color);
 };
 
 #endif

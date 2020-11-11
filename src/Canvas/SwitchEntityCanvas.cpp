@@ -45,6 +45,30 @@ bool SwitchEntityCanvas::getStateColor() {
     return this->rowCanvas->getStateColor();
 }
 
+void SwitchEntityCanvas::setSecondaryColor(uint16_t color) {
+    this->rowCanvas->setSecondaryColor(color);
+}
+
+uint16_t SwitchEntityCanvas::getSecondaryColor() {
+    return this->rowCanvas->getSecondaryColor();
+}
+
+void SwitchEntityCanvas::setSurfaceColor(uint16_t color) {
+    this->rowCanvas->setSurfaceColor(color);
+}
+
+uint16_t SwitchEntityCanvas::getSurfaceColor() {
+    return this->rowCanvas->getSurfaceColor();
+}
+
+void SwitchEntityCanvas::setOnSurfaceColor(uint16_t color) {
+    this->rowCanvas->setOnSurfaceColor(color);
+}
+
+uint16_t SwitchEntityCanvas::getOnSurfaceColor() {
+    return this->rowCanvas->getOnSurfaceColor();
+}
+
 void SwitchEntityCanvas::onStateChange(SwitchCanvasStateChangeCallback callback) {
     this->rowCanvas->onStateChange(callback);
 }

@@ -22,7 +22,6 @@ class BaseEntityRowCanvas : public Canvas {
     String getName();
     void onIconTouch(CanvasTouchCallback callback);
     void onNameTouch(CanvasTouchCallback callback);
-    void setDarkMode(bool darkMode);
     virtual void setFgColor(uint16_t fgColor);
   protected:
     ImageCanvas * iconCanvas;

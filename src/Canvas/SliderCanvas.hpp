@@ -45,6 +45,7 @@ class SliderCanvas : public Canvas{
       uint16_t drawKnob(uint16_t x, uint16_t y, uint16_t bgColor);
       void onValueChange(SliderCanvasValueChangeCallback callback);
     protected:
+      bool beingDragged = false;
       bool disabled;
       int16_t min;
       int16_t max;
@@ -62,7 +63,6 @@ class SliderCanvas : public Canvas{
       virtual bool draw();
       SliderCanvasValueChangeCallback onValueChangeCallback;
       bool onTouchEventCallback (TouchEvent event, TouchEventData eventData);
-      uint16_t alphaBlend(uint16_t fg, uint16_t bg, uint8 alpha);
 };
 
 #endif

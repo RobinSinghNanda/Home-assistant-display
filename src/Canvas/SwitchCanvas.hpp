@@ -32,7 +32,6 @@ class SwitchCanvas: public ImageCanvas {
       void setDisabled(bool disabled);
       bool getDisabled();
       void onStateChange(SwitchCanvasStateChangeCallback callback);
-      virtual void setDarkMode(bool darkMode);
       void resetIcon();
       void setSecondaryColor(uint16_t color);
       uint16_t getSecondaryColor();
@@ -40,9 +39,12 @@ class SwitchCanvas: public ImageCanvas {
       uint16_t getSurfaceColor();
       void setOnSurfaceColor(uint16_t color);
       uint16_t getOnSurfaceColor();
+      void setCustomState(bool state);
+      bool isCustomState();
     private:
       bool state = false;
       bool disabled = true;
+      bool customState = false;
       void setImagePath();
       uint16_t secondaryColor;
       uint16_t surfaceColor;

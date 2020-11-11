@@ -426,13 +426,13 @@ void updateEntityStates(bool forceSync) {
   }
   if (prevUptime != globalParams.getUptime() || forceSync) {
     snprintf(entity, sizeof(entity), "sensor.%s_uptime", device_name);
-    homeAssistant.setState(String(entity), String(globalParams.getUptime()));
+    homeAssistant.setState(String(entity), globalParams.getUpTimeString());
     globalParams.setScreenRedraw(true);
     prevUptime = globalParams.getUptime();
   }
   if (prevScreenSaverEnabled != settings.isScreenSaverEnabled() || forceSync) {
     snprintf(entity, sizeof(entity), "input_boolean.%s_screen_saver", device_name);
-    homeAssistant.setState(String(entity), globalParams.getUpTimeString());
+    homeAssistant.setState(String(entity), (settings.isScreenSaverEnabled())?"on":"off");
     globalParams.setScreenRedraw(true);
     prevScreenSaverEnabled = settings.isScreenSaverEnabled();
   }

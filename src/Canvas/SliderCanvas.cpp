@@ -79,7 +79,7 @@ bool SliderCanvas::onTouchEventCallback (TouchEvent event, TouchEventData eventD
         }
         this->invalidValue = false;
         if (this->value != prevValue) {
-            this->draw();
+            this->invalidate();
             onValueChangeCallback(this, this->value, this->prevValue);
             this->prevValue = value;
         }
@@ -87,7 +87,7 @@ bool SliderCanvas::onTouchEventCallback (TouchEvent event, TouchEventData eventD
     } else if (event & TouchActionDraged) {
         if (this->disabled)
             return true;
-        touched = 1;
+        touched = true;
         double tmp_value;
         if (eventData.endX < this->getDrawX()+SLIDER_MARGIN_LEFT) {
             tmp_value = this->min;
@@ -110,16 +110,16 @@ bool SliderCanvas::onTouchEventCallback (TouchEvent event, TouchEventData eventD
         }
         this->invalidValue = false;
         if (this->value != prevDragValue) {
+            this->invalidate();
             this->prevDragValue = this->value;
-            this->draw();
         }
         return true;
     } else if (event & TouchActionDragReleased) {
         if (this->disabled)
             return true;
-        touched = 0;
-        this->draw();
+        touched = false;
         if (this->prevValue != this->value) {
+            this->invalidate();
             onValueChangeCallback(this, this->value, this->prevValue);
             this->prevValue = this->value;
         }
@@ -153,29 +153,6 @@ bool SliderCanvas::draw() {
     tft->endWrite();
     return true;
 }
-
-uint16_t SliderCanvas::alphaBlend(uint16_t fg, uint16_t bg, uint8 alpha) {
-
-  // alpha for foreground multiplication
-  // convert from 8bit to (6bit+1) with rounding
-  // will be in [0..64] inclusive
-  alpha = ( alpha + 2 ) >> 2;
-  // "beta" for background multiplication; (6bit+1);
-  // will be in [0..64] inclusive
-  uint8 beta = MAX_ALPHA - alpha;
-  // so (0..64)*alpha + (0..64)*beta always in 0..64
-
-  return (uint16_t)((
-            (  ( alpha * (uint32_t)( fg & MASK_RB )
-                + beta * (uint32_t)( bg & MASK_RB )
-            ) & MASK_MUL_RB )
-          |
-            (  ( alpha * ( fg & MASK_G )
-                + beta * ( bg & MASK_G )
-            ) & MASK_MUL_G )
-         ) >> 6 );
-}
-
 
 uint16_t SliderCanvas::drawKnob(uint16_t x, uint16_t y, uint16_t bgColor) {
     uint16_t knobColor = (this->getDisabled()?this->convert2rgb565(0x919191):this->convert2rgb565(SLIDER_KNOB_COLOR));
@@ -211,7 +188,7 @@ uint16_t SliderCanvas::drawKnob(uint16_t x, uint16_t y, uint16_t bgColor) {
                 alpha = (*(custom_icons_bin12_cirle_bin+knobY*knobRadius+knobX/2))&0xF0;
             }
         }
-        return alphaBlend(knobColor, bgColor, alpha);
+        return tft->alphaBlend(alpha, knobColor, bgColor);
     }
     return bgColor;
 }
@@ -222,52 +199,40 @@ void SliderCanvas::onValueChange(SliderCanvasValueChangeCallback callback) {
 }
 
 void SliderCanvas::setMin(int16_t min) {
-    if (this->min != min) {
-        this->min = min;
-        if (this->value < this->min) {
-            this->value = this->min;
-        }
-        this->invalidate();
+    if (touched)
+        return;
+    invalidateIfNotEqual(this->min, min);
+    if (this->value < this->min) {
+        this->value = this->min;
     }
 }
 
 void SliderCanvas::setMax(int16_t max) {
-    if (this->max != max) {
-        this->max = max;
-        if (this->value > this->max) {
-            this->value = this->max -1;
-        }
-        this->invalidate();
+    if (touched)
+        return;
+    invalidateIfNotEqual(this->max, max);
+    if (this->value > this->max) {
+        this->value = this->max -1;
     }
 }
 
 void SliderCanvas::setStep(int16_t step) {
-    if (this->step != step) {
-        this->step = step;
-        this->invalidate();
-    }
+    invalidateIfNotEqual(this->step, step);
 }
 
 void SliderCanvas::setValue(int16_t value) {
-    if (this->value != value) {
-        this->value = value;
-        this->invalidate();
-    }
+    if (touched)
+        return;
+    invalidateIfNotEqual(this->value, value);
     this->invalidValue = false;
 }
 
 void SliderCanvas::setName(String name) {
-    if (this->name != name) {
-        this->name = name;
-        this->invalidate();
-    }
+    invalidateIfNotEqual(this->name, name);
 }
 
 void SliderCanvas::setIcon(String icon) {
-    if (this->icon != icon) {
-        this->icon = icon;
-        this->invalidate();
-    }
+    invalidateIfNotEqual(this->icon, icon);
 }
 
 int16_t SliderCanvas::getMin() {
@@ -300,7 +265,6 @@ bool SliderCanvas::getTouched() {
 
 void SliderCanvas::setDisabled(bool disabled) {
     invalidateIfNotEqual(this->disabled, disabled);
-    this->disabled = disabled;
 }
 
 bool SliderCanvas::getDisabled() {

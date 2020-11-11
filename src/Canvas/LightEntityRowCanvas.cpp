@@ -6,7 +6,6 @@ LightEntityRowCanvas::LightEntityRowCanvas(Canvas * canvas, uint16_t id) :Switch
     this->brightness = 0;
     this->tmpBrightness = 0;
     this->actualIcon = "";
-    this->setBrightnessIconPath();
     swipeThreshold = 20;
     onTouch(std::bind(&LightEntityRowCanvas::onTouchEventCallback, this, _2, _3));
     this->onStateChangeCallback = [](LightEntityRowCanvas*, bool, uint16_t) -> bool{return false;};
@@ -72,18 +71,15 @@ bool LightEntityRowCanvas::onTouchEventCallback (TouchEvent event, TouchEventDat
         }
         tmpBrightness = nextBrightness;
         this->setBrightnessIconPath();
-        this->stateCanvas->redraw();
         return true;
     } else if (isEvent(event, TouchActionLongPressedAndDraggedReleased)) {
         if (tmpBrightness != this->brightness) {
             this->setBrightness(tmpBrightness);
             this->stateCanvas->resetIcon();
-            this->stateCanvas->redraw();
             this->onStateChangeCallback(this, getState(), brightness);
             this->stateCanvas->invalidate();
         } else {
             this->stateCanvas->resetIcon();
-            this->stateCanvas->redraw();
         }
         return true;
     } else if (isEvent(event, TouchActionLongPressed)) {
@@ -93,18 +89,14 @@ bool LightEntityRowCanvas::onTouchEventCallback (TouchEvent event, TouchEventDat
             tmpBrightness = 0;
         }
         this->setBrightnessIconPath();
-        this->stateCanvas->redraw();
         return true;
     } else if (isEvent(event, TouchActionLongPressReleased)) {
         if (tmpBrightness != this->brightness) {
             this->setBrightness(tmpBrightness);
             this->stateCanvas->resetIcon();
-            this->stateCanvas->redraw();
             this->onStateChangeCallback(this, getState(), brightness);
-            this->stateCanvas->invalidate();
         } else {
             this->stateCanvas->resetIcon();
-            this->stateCanvas->redraw();
         }
         return true;
     }
@@ -124,6 +116,12 @@ void LightEntityRowCanvas::setBrightnessIconPath() {
         this->stateCanvas->setPath("mdi:light-4");
     } else {
         this->stateCanvas->setPath("mdi:light-off");
+    }
+    this->stateCanvas->setCustomState(true);
+    if (tmpBrightness == 0) {
+        this->stateCanvas->setFgColor(this->stateCanvas->getSurfaceColor());
+    } else {
+        this->stateCanvas->setFgColor(this->stateCanvas->getSecondaryColor());
     }
 }
 

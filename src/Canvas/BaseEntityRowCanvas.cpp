@@ -39,11 +39,6 @@ String BaseEntityRowCanvas::getName() {
     return this->nameCanvas->getText();
 }
 
-void BaseEntityRowCanvas::setDarkMode(bool darkMode) {
-    invalidateIfNotEqual(this->darkMode, darkMode);
-    Canvas::setDarkMode(darkMode);
-}
-
 void BaseEntityRowCanvas::onIconTouch(CanvasTouchCallback callback) {
     this->iconCanvas->onTouch(callback);
 }

@@ -23,7 +23,6 @@ class ImageCanvas : public Canvas {
     ImageCanvas(Canvas * canvas, uint16_t id);
     void setPath(String path);
     String getPath();
-    void setDarkMode(bool darkMode);
     void setMaskColor(uint16_t maskColor);
     uint16_t getMaskColor();
   protected:
@@ -35,7 +34,6 @@ class ImageCanvas : public Canvas {
     virtual bool draw();
     bool draw(String path);
     bool draw(String path, uint16_t colorMask, uint8_t colorInvert);
-    uint16_t alphaBlend(uint16_t fg, uint16_t bg, uint8 alpha);
 };
 
 #endif

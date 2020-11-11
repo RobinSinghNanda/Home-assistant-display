@@ -68,14 +68,13 @@ uint16_t SwitchEntityRowCanvas::getOnSurfaceColor() {
 
 void SwitchEntityRowCanvas::setIconColor() {
     if (this->stateCanvas->getDisabled()) {
-        this->iconCanvas->setFgColor(convert2rgb565((this->darkMode)?0x6f6f6f:0xbdbdbd));
+        this->iconCanvas->setFgColor(convert2rgb565(0x6f6f6f));
     } else if (this->stateCanvas->getState()){
         this->iconCanvas->setFgColor((this->stateColor)?convert2rgb565(0xfdd835):convert2rgb565(0x44739e));
     } else {
         this->iconCanvas->setFgColor(convert2rgb565(0x44739e)); 
     }
 }
-
 
 bool SwitchEntityRowCanvas::stateChangeCallback (bool state) {
     this->setState(state);

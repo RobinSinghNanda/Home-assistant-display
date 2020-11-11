@@ -78,7 +78,7 @@ LightEntityCanvas::LightEntityCanvas(Canvas * canvas, uint16_t id) : SwitchEntit
             canvas->getDrawY(),
             canvas->getDrawableWidth(),
             canvas->getDrawableHeight(),
-            canvas->getDarkMode()?TFT_WHITE:TFT_BLACK);
+            canvas->getFgColor());
         tft->startWrite();
         tft->setAddrWindow(canvas->getDrawX()+1,
             canvas->getDrawY()+1,
@@ -109,7 +109,7 @@ LightEntityCanvas::LightEntityCanvas(Canvas * canvas, uint16_t id) : SwitchEntit
             canvas->getDrawY(),
             canvas->getDrawableWidth(),
             canvas->getDrawableHeight(),
-            canvas->getDarkMode()?TFT_WHITE:TFT_BLACK);
+            canvas->getFgColor());
         tft->startWrite();
         tft->setAddrWindow(canvas->getDrawX()+1,
             canvas->getDrawY()+1,
@@ -140,7 +140,7 @@ LightEntityCanvas::LightEntityCanvas(Canvas * canvas, uint16_t id) : SwitchEntit
             canvas->getDrawY(),
             canvas->getDrawableWidth(),
             canvas->getDrawableHeight(),
-            canvas->getDarkMode()?TFT_WHITE:TFT_BLACK);
+            canvas->getFgColor());
         tft->startWrite();
         tft->setAddrWindow(canvas->getDrawX()+1,
             canvas->getDrawY()+1,
@@ -186,7 +186,7 @@ LightEntityCanvas::LightEntityCanvas(Canvas * canvas, uint16_t id) : SwitchEntit
             canvas->getDrawY(),
             canvas->getDrawableWidth(),
             canvas->getDrawableHeight(),
-            canvas->getDarkMode()?TFT_WHITE:TFT_BLACK);
+            canvas->getFgColor());
         tft->startWrite();
         tft->setAddrWindow(canvas->getDrawX()+1,
             canvas->getDrawY()+1,

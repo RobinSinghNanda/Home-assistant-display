@@ -21,6 +21,12 @@ class SwitchEntityCanvas : public Canvas {
         void onStateChange(SwitchCanvasStateChangeCallback callback);
         void onIconTouch(CanvasTouchCallback callback);
         void onNameTouch(CanvasTouchCallback callback);
+        void setSecondaryColor(uint16_t color);
+        uint16_t getSecondaryColor();
+        void setSurfaceColor(uint16_t color);
+        uint16_t getSurfaceColor();
+        void setOnSurfaceColor(uint16_t color);
+        uint16_t getOnSurfaceColor();
     protected:
         SwitchEntityRowCanvas * rowCanvas;
 };

@@ -18,7 +18,6 @@ Canvas::Canvas (TFT_eSPI * tft) {
   this->marginBottom = 0;
   this->hAlign = ALIGN_LEFT;
   this->vAlign = ALIGN_TOP;
-  this->darkMode = 0;
   this->onTouchCallback = [](Canvas*, TouchEvent, TouchEventData)-> bool{return false;};
   this->parent = NULL;
   this->id = 0;
@@ -39,7 +38,6 @@ Canvas::Canvas (Canvas * other, uint16_t id) {
   this->marginBottom = 0;
   this->hAlign = other->hAlign;
   this->vAlign = other->vAlign;
-  this->darkMode = other->darkMode;
   this->onTouchCallback = [](Canvas*, TouchEvent, TouchEventData)->bool{return false;};
   this->parent = other;
   this->id = id;
@@ -371,7 +369,6 @@ int16_t Canvas::getBottomY() {
 
 void Canvas::setBgColor(uint16_t bgColor) { 
   invalidateIfNotEqual(this->bgColor, bgColor);
-  this->bgColor = bgColor;
   for (CanvasRef childCanvas: this->children) {
     childCanvas->setBgColor(bgColor);
   }
@@ -384,7 +381,6 @@ uint16_t Canvas::getBgColor() {
 
 void Canvas::setFgColor(uint16_t fgColor) { 
   invalidateIfNotEqual(this->fgColor, fgColor);
-  this->fgColor = fgColor;
   for (CanvasRef childCanvas: this->children) {
     childCanvas->setFgColor(fgColor);
   }
@@ -579,7 +575,6 @@ bool Canvas::isInvalid() {
 
 void Canvas::setVisible(bool visible) {
   invalidateIfNotEqual(this->visible, visible);
-  this->visible = visible;
   for (Canvas * childCanvas: this->children) {
     childCanvas->setVisible(visible);
   }
@@ -587,19 +582,6 @@ void Canvas::setVisible(bool visible) {
 
 bool Canvas::getVisible() {
   return this->visible;
-}
-
-void Canvas::setDarkMode(bool darkMode) {
-  invalidateIfNotEqual(this->darkMode, darkMode);
-  this->darkMode = darkMode;
-  for (Canvas * childCanvas: this->children) {
-      childCanvas->setDarkMode(darkMode);
-  }
-  this->invalidate();
-}
-
-bool Canvas::getDarkMode() {
-  return this->darkMode;
 }
 
 void Canvas::alignRight(Canvas * canvas) {

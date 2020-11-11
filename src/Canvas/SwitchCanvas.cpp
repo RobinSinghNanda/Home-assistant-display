@@ -56,11 +56,9 @@ bool SwitchCanvas::getDisabled() {
 }
 
 void SwitchCanvas::resetIcon() {
+    this->customState = false;
     setImagePath();
-    this->invalidate();
 }
-
-
 
 bool SwitchCanvas::draw() {
   #ifdef CANVAS_DEBUG
@@ -71,6 +69,8 @@ bool SwitchCanvas::draw() {
 }
 
 void SwitchCanvas::setImagePath() {
+    if (customState)
+        return;
     if (this->disabled) {
         this->ImageCanvas::setPath(SWITCH_ICON_UNAVAIABLE);
         this->setFgColor(surfaceColor);
@@ -112,6 +112,14 @@ uint16_t SwitchCanvas::getOnSurfaceColor() {
     return this->onSurfaceColor;
 }
 
+void SwitchCanvas::setCustomState(bool state) {
+    this->customState = state;
+}
+
+bool SwitchCanvas::isCustomState() {
+    return this->customState;
+}
+
 void SwitchCanvas::onStateChange(SwitchCanvasStateChangeCallback callback) {
     this->onStateChangeCallback = callback;
 }
@@ -125,11 +133,4 @@ bool SwitchCanvas::onTouchEventCallback (TouchEvent event, TouchEventData eventD
         return true;
     }
     return false;
-}
-
-void SwitchCanvas::setDarkMode(bool darkMode) {
-    invalidateIfNotEqual(this->darkMode, darkMode);
-    this->darkMode = darkMode;
-    this->setImagePath();
-    this->invalidate();
 }

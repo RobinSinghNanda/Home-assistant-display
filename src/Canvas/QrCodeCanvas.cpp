@@ -6,7 +6,6 @@ QrCodeCanvas::QrCodeCanvas(Canvas * canvas, uint16_t id) : Canvas(canvas, id) {
 
 void QrCodeCanvas::setPath(String path) {
     invalidateIfNotEqual(this->path, path);
-    this->path = path;
 }
 
 String QrCodeCanvas::getPath() {

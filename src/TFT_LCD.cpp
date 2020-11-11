@@ -55,7 +55,7 @@ uint32_t buildLightBodyCanvas(TFTConfig * tftConfig, Canvas * bodyCanvas) {
   if (String(lightPageConfig->getEntityId()) != "") {
     String entity = lightPageConfig->getEntityId();
     LightEntityCanvas * lightEntityCanvas = new LightEntityCanvas(bodyCanvas, ID_LIGHT_SWITCH_ENTITY);
-    lightEntityCanvas->onStateChange([entity](LightEntityCanvas* canvas, bool state)->bool{
+    lightEntityCanvas->onStateChange([entity](LightEntityCanvas* canvas, bool state)->bool {
         uint8_t brightness = canvas->getBrightness();
         uint32_t color = canvas->getColor();
         uint16_t color_temp = canvas->getColorTemperature();
@@ -95,6 +95,7 @@ bool setLightBodyCanvasState(TFTConfig * tftConfig, Canvas * bodyCanvas) {
   ScreenConfig * screenConfig = getScreenConfig(tftConfig);
   BaseCardConfig * pageConfig = screenConfig->getCard(globalParams.getScreenPageNumber());
   LightCardConfig * lightPageConfig = (LightCardConfig *) pageConfig;
+  LcdTheme * theme = settings.getLcdSelectedTheme();
   if (String(lightPageConfig->getEntityId()) != "") {
     LightEntityCanvas * lightEntityCanvas = (LightEntityCanvas *) bodyCanvas->get(ID_LIGHT_SWITCH_ENTITY);
     String name;
@@ -153,14 +154,19 @@ bool setLightBodyCanvasState(TFTConfig * tftConfig, Canvas * bodyCanvas) {
         lightEntityCanvas->setColor(red, green, blue);
       }
     }
-    if (colorTemp == "") {
+    if (colorTemp == "" && minMireds == "") {
       lightEntityCanvas->setColorTemperatureSliderEnabled(false);
     } else {
       lightEntityCanvas->setMinColorTemperature(minMireds.toInt());
       lightEntityCanvas->setMaxColorTemperature(maxMireds.toInt());
       lightEntityCanvas->setColorTemperatureSliderEnabled(true);
-      lightEntityCanvas->setColorTemperature(colorTemp.toInt());
+      if (colorTemp != "") {
+        lightEntityCanvas->setColorTemperature(colorTemp.toInt());
+      }
     }
+    lightEntityCanvas->setSecondaryColor(theme->colorSwitchSecondary.getRGB656());
+    lightEntityCanvas->setSurfaceColor(theme->colorSwitchSurface.getRGB656());
+    lightEntityCanvas->setOnSurfaceColor(theme->colorSwitchOnSurface.getRGB656());
   }
   return 1;
 }
@@ -192,6 +198,7 @@ bool setSwitchBodyCanvasState(TFTConfig * tftConfig, Canvas * bodyCanvas) {
   ScreenConfig * screenConfig = getScreenConfig(tftConfig);
   BaseCardConfig * pageConfig = screenConfig->getCard(globalParams.getScreenPageNumber());
   SwitchCardConfig * switchPageConfig = (SwitchCardConfig *) pageConfig;
+  LcdTheme * theme = settings.getLcdSelectedTheme();
   if (String(switchPageConfig->getEntityId()) != "") {
     SwitchEntityCanvas * switchEntityCanvas = (SwitchEntityCanvas *) bodyCanvas->get(ID_SWITCH_ENTITY);
     String name;
@@ -215,6 +222,9 @@ bool setSwitchBodyCanvasState(TFTConfig * tftConfig, Canvas * bodyCanvas) {
     } else {
       switchEntityCanvas->setDisabled(true);
     }
+    switchEntityCanvas->setSecondaryColor(theme->colorSwitchSecondary.getRGB656());
+    switchEntityCanvas->setSurfaceColor(theme->colorSwitchSurface.getRGB656());
+    switchEntityCanvas->setOnSurfaceColor(theme->colorSwitchOnSurface.getRGB656());
   }
   return 1;
 }
@@ -313,6 +323,7 @@ bool setFanBodyCanvasState(TFTConfig * tftConfig, Canvas * bodyCanvas) {
   ScreenConfig * screenConfig = getScreenConfig(tftConfig);
   BaseCardConfig * pageConfig = screenConfig->getCard(globalParams.getScreenPageNumber());
   FanCardConfig * fanPageConfig = (FanCardConfig *) pageConfig;
+  LcdTheme * theme = settings.getLcdSelectedTheme();
   if (String(fanPageConfig->getEntityId()) != "") {
     FanEntityCanvas * fanEntityCanvas = (FanEntityCanvas *) bodyCanvas->get(ID_FAN_SWITCH_ENTITY);
     String name;
@@ -359,6 +370,9 @@ bool setFanBodyCanvasState(TFTConfig * tftConfig, Canvas * bodyCanvas) {
         fanEntityCanvas->setFanSpeed(0);
       }
     }
+    fanEntityCanvas->setSecondaryColor(theme->colorSwitchSecondary.getRGB656());
+    fanEntityCanvas->setSurfaceColor(theme->colorSwitchSurface.getRGB656());
+    fanEntityCanvas->setOnSurfaceColor(theme->colorSwitchOnSurface.getRGB656());
   }
   return 1;
 }
@@ -768,7 +782,7 @@ uint32_t buildBodyCanvas (TFTConfig * tftConfig, Canvas * bodyCanvas) {
 }
 
 uint32_t drawScreen() {
-  if (globalParams.getScreenRebuild() || globalParams.getScreenRedraw()) {
+  if (globalParams.getScreenRebuild() || true) {
     Canvas * _screenCanvas = screenCanvasG;
     if(xSemaphoreTake(screenConfigMutex, portMAX_DELAY) == pdTRUE) {
       if (globalParams.getScreenRebuild()) {
@@ -781,12 +795,10 @@ uint32_t drawScreen() {
           _screenCanvas->setHeight(LCD_HEIGHT);
         }
         buildScreenCanvas(_screenCanvas);
-        _screenCanvas->setDarkMode(settings.isDarkMode());
       }
       setScreenCanvasState(_screenCanvas);
       _screenCanvas->redraw();
       if (globalParams.getScreenRebuild()) {
-        
           Canvas * prevScreenCanvas = screenCanvasG;
           screenCanvasG = _screenCanvas;
           delete prevScreenCanvas;
@@ -845,7 +857,7 @@ uint32_t buildScreenCanvas(Canvas * screenCanvas) {
         if (pageSelectorCanvas == NULL)
           return false;
         pageSelectorCanvas->setTempPosition(pageSelectorCanvas->getSelected());
-        pageSelectorCanvas->redraw();
+        globalParams.setScreenRedraw(true);
         return true;
       }
       if (getHorizontalSwipe(eventData.swipeDirection) == SwipeLeft) {
@@ -888,7 +900,7 @@ uint32_t buildScreenCanvas(Canvas * screenCanvas) {
         value -= pageSelectorCanvas->getNumPages();
       }
       pageSelectorCanvas->setTempPosition(value);
-      pageSelectorCanvas->redraw();
+      globalParams.setScreenRedraw(true);
       return true;
     });
   return 0;
@@ -901,17 +913,18 @@ void setHeaderCanvasState (TFTConfig * tftConfig, Canvas * headerCanvas) {
   Canvas * wifiCanvas = (*headerCanvas)[ID_HEADER_WIFI_ICON];
   Canvas * iconCanvas = (*headerCanvas)[ID_HEADER_ICON];
   Canvas * settingsIconCanvas = (*headerCanvas)[ID_HEADER_SETTINGS_ICON];
+  PageSelectorCanvas * pageSelectorCanvas = (PageSelectorCanvas *)(*headerCanvas)[ID_HEADER_PAGE_SELECTOR];
   LcdTheme * theme = settings.getLcdSelectedTheme();
   if (wifiCanvas != NULL) {
     ImageCanvas * wifiImageCanvas = (ImageCanvas *) wifiCanvas;
     String wifiIcon = "mdi:wifi-alert";
     if (globalParams.isWifiApMode()) {
       wifiIcon = "mdi:access-point";
-    } else if (globalParams.isHomeAssistantConnectionFailed()) {
+    } else if (globalParams.isHomeAssistantConnectionFailed() && globalParams.isWifiUp()) {
       wifiIcon = "mdi:wifi-alert";
-    } else if (globalParams.isHomeAssistantSyncing()) {
+    } else if (globalParams.isHomeAssistantSyncing() && globalParams.isWifiUp()) {
       wifiIcon = "mdi:wifi-arrow-up-down";
-    } else if (globalParams.isHomeAssistantConnected()) {
+    } else if (globalParams.isHomeAssistantConnected() && globalParams.isWifiUp()) {
       wifiIcon = "mdi:wifi-lock";
     } else if (globalParams.isWifiUp()) {
       wifiIcon = "mdi:wifi";
@@ -939,6 +952,10 @@ void setHeaderCanvasState (TFTConfig * tftConfig, Canvas * headerCanvas) {
     headerCanvas->setBgColor(theme->colorScreenSaverBackground.getRGB656());
   } else {
     headerCanvas->setBgColor(theme->colorHeaderBackground.getRGB656());
+  }
+  if (pageSelectorCanvas != nullptr) {
+    pageSelectorCanvas->setFgColor(theme->colorPageIndicator.getRGB656());
+    pageSelectorCanvas->setSelectedColor(theme->colorPageIndicatorSelected.getRGB656());
   }
   headerCanvas->setFgColor(theme->colorHeaderText.getRGB656());
   headerCanvas->setDrawBackgroundEnable(true);

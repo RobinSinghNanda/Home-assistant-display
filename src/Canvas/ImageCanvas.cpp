@@ -10,32 +10,21 @@ ImageCanvas::ImageCanvas(Canvas * canvas, uint16_t id) : Canvas(canvas, id) {
 void ImageCanvas::setPath(String path) {
   if (path.indexOf(".jpg") >= 0) {
     invalidateIfNotEqual(this->path, path);
-    this->path = path;
     this->imageType = ImageTypeJpg;
   } else if (path.indexOf(".bin") >= 0) {
     invalidateIfNotEqual(this->path, path);
-    this->path = path;
     this->imageType = ImageTypeBin;
   } else {
     String s_icon = "/"+path+".bin";
     s_icon.replace(":","/");
     invalidateIfNotEqual(this->path, s_icon);
-    this->path = s_icon;
     this->imageType = ImageTypeBin;
   }
   this->invalidate();
 }
 
-
-void ImageCanvas::setDarkMode(bool darkMode) {
-  invalidateIfNotEqual(this->darkMode, darkMode);
-  this->darkMode = darkMode;
-  this->invalidate();
-}
-
 void ImageCanvas::setMaskColor(uint16_t maskColor) {
   invalidateIfNotEqual(this->maskColor, maskColor);
-  this->maskColor = maskColor;
 }
 
 uint16_t ImageCanvas::getMaskColor() {
@@ -69,30 +58,6 @@ bool ImageCanvas::draw() {
     Serial.println(this->path);
   }
   return 1;
-}
-
-
-
-uint16_t ImageCanvas::alphaBlend(uint16_t fg, uint16_t bg, uint8 alpha) {
-
-  // alpha for foreground multiplication
-  // convert from 8bit to (6bit+1) with rounding
-  // will be in [0..64] inclusive
-  alpha = ( alpha + 2 ) >> 2;
-  // "beta" for background multiplication; (6bit+1);
-  // will be in [0..64] inclusive
-  uint8 beta = MAX_ALPHA - alpha;
-  // so (0..64)*alpha + (0..64)*beta always in 0..64
-
-  return (uint16_t)((
-            (  ( alpha * (uint32_t)( fg & MASK_RB )
-                + beta * (uint32_t)( bg & MASK_RB )
-            ) & MASK_MUL_RB )
-          |
-            (  ( alpha * ( fg & MASK_G )
-                + beta * ( bg & MASK_G )
-            ) & MASK_MUL_G )
-         ) >> 6 );
 }
 
 void ImageCanvas::renderBin() {
@@ -181,13 +146,13 @@ void ImageCanvas::renderBin() {
   } else if (format == 3) {
     while (file.available() && num_pixels > 0) {
       pImg = file.read();
-      uint16_t red = pImg*this->getRed(this->fgColor);
-      uint16_t green = pImg*this->getGreen(this->fgColor);
-      uint16_t blue = pImg*this->getBlue(this->fgColor);
+      uint16_t red = (pImg+1)*this->getRed(this->fgColor);
+      uint16_t green = (pImg+1)*this->getGreen(this->fgColor);
+      uint16_t blue = (pImg+1)*this->getBlue(this->fgColor);
       pImg = file.read();
-      red += pImg*this->getRed(this->bgColor);
-      green += pImg*this->getGreen(this->bgColor);
-      blue += pImg*this->getBlue(this->bgColor);
+      red += (pImg+1)*this->getRed(this->bgColor);
+      green += (pImg+1)*this->getGreen(this->bgColor);
+      blue += (pImg+1)*this->getBlue(this->bgColor);
       red >>= 8;
       green >>= 8;
       blue >>= 8;
@@ -197,17 +162,17 @@ void ImageCanvas::renderBin() {
   } else if (format == 4) {
     while (file.available() && num_pixels > 0) {
       pImg = file.read();
-      uint16_t red = pImg*this->getRed(this->fgColor);
-      uint16_t green = pImg*this->getGreen(this->fgColor);
-      uint16_t blue = pImg*this->getBlue(this->fgColor);
+      uint16_t red = (pImg+1)*this->getRed(this->fgColor);
+      uint16_t green = (pImg+1)*this->getGreen(this->fgColor);
+      uint16_t blue = (pImg+1)*this->getBlue(this->fgColor);
       pImg = file.read();
-      red += pImg*this->getRed(this->bgColor);
-      green += pImg*this->getGreen(this->bgColor);
-      blue += pImg*this->getBlue(this->bgColor);
+      red += (pImg+1)*this->getRed(this->bgColor);
+      green += (pImg+1)*this->getGreen(this->bgColor);
+      blue += (pImg+1)*this->getBlue(this->bgColor);
       pImg = file.read();
-      red += pImg*this->getRed(this->maskColor);
-      green += pImg*this->getGreen(this->maskColor);
-      blue += pImg*this->getBlue(this->maskColor);
+      red += (pImg+1)*this->getRed(this->maskColor);
+      green += (pImg+1)*this->getGreen(this->maskColor);
+      blue += (pImg+1)*this->getBlue(this->maskColor);
       red >>= 8;
       green >>= 8;
       blue >>= 8;

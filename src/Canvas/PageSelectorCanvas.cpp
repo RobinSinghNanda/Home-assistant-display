@@ -18,6 +18,7 @@ PageSelectorCanvas::PageSelectorCanvas(Canvas * canvas, uint16_t id) : Canvas(ca
     this->tempPosition = 0;
     this->prevSelectedPage = this->selectedPage;
     this->limitStep = 0;
+    this->selectedColor = PAGE_SELECTOR_SELECTED_COLOR;
     this->setHMargin(2*PAGE_SELECTOR_SELECTED_RAD);
     using namespace std::placeholders;
     onTouch(std::bind(&PageSelectorCanvas::onTouchEventCallback, this, _2, _3));
@@ -70,6 +71,14 @@ bool PageSelectorCanvas::onTouchEventCallback (TouchEvent event, TouchEventData 
         return true;
     }
     return false;
+}
+
+void PageSelectorCanvas::setSelectedColor(uint16_t color) {
+    this->selectedColor = color;
+}
+
+uint16_t PageSelectorCanvas::getSelectedColor() {
+    return this->selectedColor;
 }
 
 void PageSelectorCanvas::setSelected(uint16_t selectedPage) {
@@ -127,84 +136,30 @@ bool PageSelectorCanvas::draw() {
         this->fillCircle(
                 this->getDrawX() + i*pageSelectorWidth + pageSelectorWidth/2 - PAGE_SELECTOR_RAD,
                 this->getDrawY() + this->getDrawableHeight()/2 - PAGE_SELECTOR_RAD,
-                this->getFgColor(),
-                (this->getFgColor() == TFT_BLACK)
-            );
+                this->getFgColor());
     }
-    // uint16_t tempPositionInt = tempPosition;
-    // double remainder = tempPosition - tempPositionInt;
-    // if (remainder < 0.5) {
-    //     this->fillCircle(
-    //             this->getDrawX() +(tempPositionInt+0.5)*(pageSelectorWidth) - PAGE_SELECTOR_SELECTED_RAD,
-    //             this->getDrawY() + this->getDrawableHeight()/2 - PAGE_SELECTOR_RAD,
-    //             PAGE_SELECTOR_SELECTED_COLOR,
-    //             (this->getFgColor() == TFT_BLACK)
-    //         );
-    //     this->fillCircle(
-    //             this->getDrawX() +(tempPositionInt+0.5+2*remainder)*(pageSelectorWidth) - PAGE_SELECTOR_SELECTED_RAD,
-    //             this->getDrawY() + this->getDrawableHeight()/2 - PAGE_SELECTOR_RAD,
-    //             PAGE_SELECTOR_SELECTED_COLOR,
-    //             (this->getFgColor() == TFT_BLACK)
-    //         );
-    //     tft->fillRect(
-    //             this->getDrawX() +(tempPositionInt+0.5)*(pageSelectorWidth),
-    //             this->getDrawY() + this->getDrawableHeight()/2 - PAGE_SELECTOR_RAD,
-    //             (2*remainder)*(pageSelectorWidth)+1,
-    //             PAGE_SELECTOR_RAD*2,
-    //             PAGE_SELECTOR_SELECTED_COLOR
-    //         );
-    // } else {
-    //     this->fillCircle(
-    //             this->getDrawX() +(tempPositionInt-0.5+remainder*2)*(pageSelectorWidth) - PAGE_SELECTOR_SELECTED_RAD,
-    //             this->getDrawY() + this->getDrawableHeight()/2 - PAGE_SELECTOR_RAD,
-    //             PAGE_SELECTOR_SELECTED_COLOR,
-    //             (this->getFgColor() == TFT_BLACK)
-    //         );
-    //     this->fillCircle(
-    //             this->getDrawX() +(tempPositionInt+1.5)*(pageSelectorWidth) - PAGE_SELECTOR_SELECTED_RAD,
-    //             this->getDrawY() + this->getDrawableHeight()/2 - PAGE_SELECTOR_RAD,
-    //             PAGE_SELECTOR_SELECTED_COLOR,
-    //             (this->getFgColor() == TFT_BLACK)
-    //         );
-    //     tft->fillRect(
-    //             this->getDrawX() +(tempPositionInt-0.5+remainder*2)*(pageSelectorWidth),
-    //             this->getDrawY() + this->getDrawableHeight()/2 - PAGE_SELECTOR_RAD,
-    //             (2*(1-remainder))*(pageSelectorWidth)+1,
-    //             PAGE_SELECTOR_RAD*2,
-    //             PAGE_SELECTOR_SELECTED_COLOR
-    //         );
-    // }
     this->fillCircle(
             this->getDrawX() + (this->tempPosition+0.5)*pageSelectorWidth - PAGE_SELECTOR_RAD,
             this->getDrawY() + this->getDrawableHeight()/2 - PAGE_SELECTOR_RAD,
-            PAGE_SELECTOR_SELECTED_COLOR,
-            (this->getFgColor() == TFT_BLACK)
-        );
+            this->selectedColor);
     return true;
 }
 
-void PageSelectorCanvas::fillCircle(uint16_t x, uint16_t y, uint16_t colorMask, bool invert) {
-    //tft->startWrite();
-    //tft->setAddrWindow(x, y, 8, 6);
+void PageSelectorCanvas::fillCircle(uint16_t x, uint16_t y, uint16_t color) {
     for (uint16_t i=0; i<6; i++) {
         for (uint16_t j=0; j<4; j++) {
             uint8_t color8Bit;
             uint16_t color16Bit;
             color8Bit = (*(cirleImage+i*4+j))&0xF0;
-            color16Bit = ((color8Bit & 0b11111000)<<8) + ((color8Bit & 0b11111100)<<3)+(color8Bit>>3);
-            color16Bit = (invert)?((~color16Bit)|colorMask):(color16Bit&colorMask);
-            //tft->pushColor(color16Bit);
-            if (((invert)&&(color16Bit != TFT_WHITE))||((!invert)&&(color16Bit != TFT_BLACK)))
+            color16Bit = tft->alphaBlend(color8Bit, color, bgColor);
+            if (color16Bit != bgColor)
                 tft->drawPixel(x+j*2, y+i, color16Bit);
             color8Bit = ((*(cirleImage+i*4+j))<<4)&0xF0;
-            color16Bit = ((color8Bit & 0b11111000)<<8) + ((color8Bit & 0b11111100)<<3)+(color8Bit>>3);
-            color16Bit = (invert)?((~color16Bit)|colorMask):(color16Bit&colorMask);
-            //tft->pushColor(color16Bit);
-            if (((invert)&&(color16Bit != TFT_WHITE))||((!invert)&&(color16Bit != TFT_BLACK)))
+            color16Bit = tft->alphaBlend(color8Bit, color, bgColor);
+            if (color16Bit != bgColor)
                 tft->drawPixel(x+j*2+1, y+i, color16Bit);
         }
     }
-    //tft->endWrite();
 }
 
 void PageSelectorCanvas::onValueChange(PageSelectorCanvasStateChangeCallback callback) {

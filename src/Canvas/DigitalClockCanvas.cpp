@@ -25,24 +25,21 @@ DigitalClockCanvas::~DigitalClockCanvas() {
 }
 
 void DigitalClockCanvas::setHour(uint8_t hour) {
-    invalidateIfNotEqual(this->hour, hour);
     if (hour > 24) 
         return;
-    this->hour = hour;
+    invalidateIfNotEqual(this->hour, hour);
 }
 
 void DigitalClockCanvas::setMinute(uint8_t minute) {
-    invalidateIfNotEqual(this->minute, minute);
     if (minute > 60) 
         return;
-    this->minute = minute;
+    invalidateIfNotEqual(this->minute, minute);
 }
 
 void DigitalClockCanvas::setSecond(uint8_t second) {
-    invalidateIfNotEqual(this->second, second);
     if (second > 60) 
         return;
-    this->second = second;
+    invalidateIfNotEqual(this->second, second);
 }
 
 void DigitalClockCanvas::setTime(uint8_t hour, uint8_t minute, uint8_t second) {
@@ -53,17 +50,14 @@ void DigitalClockCanvas::setTime(uint8_t hour, uint8_t minute, uint8_t second) {
 
 void DigitalClockCanvas::setDisplaySecond(bool display) {
     invalidateIfNotEqual(this->displaySecond, display);
-    this->displaySecond = display;
 }
 
 void DigitalClockCanvas::setDisplayDate(bool display) {
     invalidateIfNotEqual(this->displayDate, display);
-    this->displayDate = display;
 }
 
 void DigitalClockCanvas::setTimeFormat(TimeFormat timeFormat) {
     invalidateIfNotEqual(this->timeFormat, timeFormat);
-    this->timeFormat = timeFormat;
 }
 
 uint8_t DigitalClockCanvas::getHour() {
@@ -92,7 +86,6 @@ TimeFormat DigitalClockCanvas::getTimeFormat() {
 
 void DigitalClockCanvas::setBlink(bool blink) {
     invalidateIfNotEqual(this->blink, blink);
-    this->blink = blink;
 }
 
 bool DigitalClockCanvas::getBlink() {
@@ -254,7 +247,6 @@ uint16_t DigitalClockCanvas::getCursorY(uint16_t textHeight) {
 
 void DigitalClockCanvas::setValid(bool valid) {
     invalidateIfNotEqual(this->valid, valid);
-    this->valid = valid;
 }
 
 bool DigitalClockCanvas::getValid() {

@@ -25,7 +25,7 @@ class Canvas;
 typedef std::function<bool(Canvas*, TouchEvent, TouchEventData)> CanvasTouchCallback;
 
 #define minimum(a,b)     (((a) < (b)) ? (a) : (b))
-#define invalidateIfNotEqual(a,b) {if(a == b){return;}else{this->invalidate();}}
+#define invalidateIfNotEqual(a,b) {if(a == b){return;}else{a=b;this->invalidate();}}
 #define returnIfEqual(a,b) {if(a == b){return;}}
 
 enum CanvasHorizontalAlignment {
@@ -121,8 +121,6 @@ class Canvas {
     bool isInvalid();
     void setVisible(bool visible);
     bool getVisible();
-    virtual void setDarkMode(bool darkMode);
-    bool getDarkMode();
     void alignRight(Canvas * canvas);
     void alignRight();
     void horizontalAlign(Canvas * leftCanvas, Canvas * rightCanvas);
@@ -165,7 +163,6 @@ class Canvas {
     bool visible = 1;
     bool invalidated = 1;
     bool changed = 0;
-    bool darkMode = 0;
     bool drawBackgroundEnable = false;
     bool add(Canvas * childCanvas);
     virtual bool draw();

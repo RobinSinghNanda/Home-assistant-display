@@ -6,7 +6,6 @@ FanEntityRowCanvas::FanEntityRowCanvas(Canvas * canvas, uint16_t id) : SwitchEnt
     this->speed = 0;
     this->tmpSpeed = 0;
     this->actualIcon = "";
-    this->setFanIconPath();
     swipeThreshold = 20;
     onTouch(std::bind(&FanEntityRowCanvas::onTouchEventCallback, this, _2, _3));
     this->onStateChangeCallback = [](FanEntityRowCanvas*, bool, uint16_t) -> bool{return false;};
@@ -41,6 +40,12 @@ void FanEntityRowCanvas::setFanIconPath() {
     } else {
         this->stateCanvas->setPath("mdi:fan-off");
     }
+    this->stateCanvas->setCustomState(true);
+    if (tmpSpeed == 0) {
+        this->stateCanvas->setFgColor(this->stateCanvas->getSurfaceColor());
+    } else {
+        this->stateCanvas->setFgColor(this->stateCanvas->getSecondaryColor());
+    }
 }
 
 uint16_t FanEntityRowCanvas::getSpeed(){
@@ -69,12 +74,10 @@ bool FanEntityRowCanvas::onTouchEventCallback (TouchEvent event, TouchEventData 
         }
         tmpSpeed = nextSpeed;
         this->setFanIconPath();
-        this->stateCanvas->redraw();
         return true;
     } else if (isEvent(event, TouchActionLongPressedAndDraggedReleased)) {
         this->setSpeed(tmpSpeed);
         this->stateCanvas->resetIcon();
-        this->stateCanvas->redraw();
         this->onStateChangeCallback(this, getState(), speed);
         return true;
     } else if (isEvent(event, TouchActionLongPressed)) {
@@ -84,17 +87,14 @@ bool FanEntityRowCanvas::onTouchEventCallback (TouchEvent event, TouchEventData 
             tmpSpeed = 0;
         }
         this->setFanIconPath();
-        this->stateCanvas->redraw();
         return true;
     } else if (isEvent(event, TouchActionLongPressReleased)) {
         if (tmpSpeed != this->speed) {
             this->setSpeed(tmpSpeed);
             this->stateCanvas->resetIcon();
-            this->stateCanvas->redraw();
             this->onStateChangeCallback(this, getState(), speed);
         } else {
             this->stateCanvas->resetIcon();
-            this->stateCanvas->redraw();
         }
         return true;
     }

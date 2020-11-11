@@ -25,9 +25,13 @@ String GlobalParams::getUpTimeString() {
     seconds = uptime;
     String uptimeString;
     if (seconds) {
-        uptimeString = String(seconds)+"s";
+        if (!hours) {
+            uptimeString = String(seconds)+"s";
+        }
         if (minutes){
-            uptimeString = String(minutes)+"m "+uptimeString;
+            if (!days) {
+                uptimeString = String(minutes)+"m "+uptimeString;
+            }
             if (hours) {
                 uptimeString = String(hours)+"h "+uptimeString;
                 if (days) {
