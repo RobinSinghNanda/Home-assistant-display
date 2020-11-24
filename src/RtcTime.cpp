@@ -274,6 +274,27 @@ void BreakTime(uint32_t time_input, TIME_T &tm) {
   tm.valid = (time_input > START_VALID_TIME);  // 2016-01-01
 }
 
+uint32_t MakeTime(const char * datetime) {
+  TIME_T tm;
+  int tzh = 0, tzm = 0;
+  int y,M,d,h,m;
+  float s;
+  if (datetime[0] != '\0') {
+      if (6<sscanf(datetime, "%d-%d-%dT%d:%d:%f%d:%d", &(y), &(M), &(d), &(h), &(m), &(s), &tzh, &tzm)) {
+          if (tzh < 0) {
+              tzm = -tzm;    // Fix the sign on minutes.
+          }
+      }
+  }
+  tm.year = y-1970;
+  tm.month = M;
+  tm.day_of_month = d;
+  tm.hour = h;
+  tm.minute= m;
+  tm.second = (int)s;
+  return MakeTime(tm);
+}
+
 uint32_t MakeTime(TIME_T &tm)
 {
 // assemble time elements into time_t

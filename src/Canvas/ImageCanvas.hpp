@@ -18,6 +18,9 @@ enum ImageType {
   ImageTypeBin
 };
 
+class ImageCanvas;
+typedef ImageCanvas IconCanvas;
+
 class ImageCanvas : public Canvas {
   public:
     ImageCanvas(Canvas * canvas, uint16_t id);
@@ -25,10 +28,13 @@ class ImageCanvas : public Canvas {
     String getPath();
     void setMaskColor(uint16_t maskColor);
     uint16_t getMaskColor();
+    void setScale(uint8_t scale);
+    uint8_t getScale();
   protected:
+    uint8_t scale = 1;
     String path;
     ImageType imageType;
-    uint16_t maskColor;
+    Color16Bit maskColor;
     void renderJPEG();
     void renderBin();
     virtual bool draw();

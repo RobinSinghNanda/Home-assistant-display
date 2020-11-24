@@ -81,7 +81,6 @@ void Canvas::setX(int16_t x) {
       } else if (this->x > parent->getDrawRightX()) {
         this->x = parent->getDrawRightX();
         this->width = 0;
-        Serial.println("X can't be more than parent x, reducing width to 0.");
       } else if (this->getRightX() > parent->getDrawRightX()) {
         this->width = parent->getDrawRightX() - this->getX();
       }
@@ -106,7 +105,6 @@ void Canvas::setY(int16_t y) {
       } else if (this->y > parent->getDrawBottomY()) {
         this->y = parent->getDrawBottomY();
         this->setHeight(0);
-        Serial.println("Y can't be more than parent y, reducing width to 0.");
       } else if (this->getBottomY() > parent->getDrawBottomY()) {
         this->setHeight(parent->getDrawBottomY() - this->getY());
       }
@@ -162,212 +160,7 @@ void Canvas::setBottomY(int16_t bottomY) {
   }
 }
 
-uint16_t Canvas::getX() {
-  return this->x;
-}
-
-uint16_t Canvas::getY() {
-  return this->y;
-}
-
-uint16_t Canvas::getWidth() {
-  return this->width;
-}
-
-uint16_t Canvas::getHeight() {
-  return this->height;
-}
-
-void Canvas::setHMargin(uint16_t margin) {
-  this->setHMargin(margin, margin);
-}
-
-void Canvas::setHMargin(uint16_t marginLeft, uint16_t marginRight) {
-  this->marginLeft = marginLeft;
-  this->marginRight = marginRight;
-}
-
-void Canvas::setVMargin(uint16_t margin) {
-  this->setVMargin(margin, margin);
-}
-
-void Canvas::setVMargin(uint16_t margin_top, uint16_t margin_bottom) {
-  this->marginTop = margin_top;
-  this->marginBottom = margin_bottom;
-}
-
-void Canvas::setMargin(uint16_t margin) {
-  this->setMargin(margin, margin, margin, margin);
-}
-
-void Canvas::setMargin(uint16_t margin_horizontal, uint16_t margin_vertical) {
-  this->setHMargin(margin_horizontal);
-  this->setVMargin(margin_vertical);
-}
-
-void Canvas::setMargin(uint16_t margin_left, uint16_t margin_right, uint16_t margin_top, uint16_t margin_bottom) {
-  this->marginTop = margin_top;
-  this->marginLeft = margin_left;
-  this->marginRight = margin_right;
-  this->marginBottom = margin_bottom;
-}
-
-void Canvas::setMarginLeft(uint16_t marginLeft) {
-  this->marginLeft = marginLeft;
-}
-
-void Canvas::setMarginRight(uint16_t marginRight) {
-  this->marginRight = marginRight;
-}
-
-void Canvas::setMarginTop(uint16_t marginTop) {
-  this->marginTop = marginTop;
-}
-
-void Canvas::setMarginBottom(uint16_t marginBottom) {
-  this->marginBottom = marginBottom;
-}
-
-uint16_t Canvas::getMarginLeft() {
-  return this->marginLeft;
-}
-
-uint16_t Canvas::getMarginTop()  {
-  return this->marginTop;
-}
-
-uint16_t Canvas::getMarginRight() {
-  return this->marginRight;
-}
-
-uint16_t Canvas::getMarginBottom() {
-  return this->marginBottom;
-}
-
-void Canvas::setHPadding(uint16_t padding) {
-  this->setPadding(padding, padding);
-}
-
-void Canvas::setHPadding(uint16_t padding_left, uint16_t padding_right) {
-  this->paddingLeft = padding_left;
-  this->paddingRight = padding_right;
-}
-
-void Canvas::setVPadding(uint16_t padding) {
-  this->setVPadding(padding, padding);
-}
-
-void Canvas::setVPadding(uint16_t padding_top, uint16_t padding_bottom) {
-  this->paddingTop = padding_top;
-  this->paddingBottom = padding_bottom;
-}
-
-void Canvas::setPadding(uint16_t padding) {
-  this->setPadding(padding, padding, padding, padding);
-}
-
-void Canvas::setPadding(uint16_t padding_horizontal, uint16_t padding_vertical) {
-  this->setHPadding(padding_horizontal);
-  this->setVPadding(padding_vertical);
-}
-
-void Canvas::setPadding(uint16_t padding_left, uint16_t padding_right, uint16_t padding_top, uint16_t padding_bottom) {
-  this->paddingTop = padding_top;
-  this->paddingLeft = padding_left;
-  this->paddingRight = padding_right;
-  this->paddingBottom = padding_bottom;
-}
-
-void Canvas::setPaddingLeft(uint16_t paddingLeft) {
-  this->paddingLeft = paddingLeft;
-}
-
-void Canvas::setPaddingRight(uint16_t paddingRight) {
-  this->paddingRight = paddingRight;
-}
-
-void Canvas::setPaddingTop(uint16_t paddingTop) {
-  this->paddingTop = paddingTop;
-}
-
-void Canvas::setPaddingBottom(uint16_t paddingBottom) {
-  this->paddingBottom = paddingBottom;
-}
-
-uint16_t Canvas::getPaddingLeft() {
-  return this->paddingLeft;
-}
-
-uint16_t Canvas::getPaddingTop()  {
-  return this->paddingTop;
-}
-
-uint16_t Canvas::getPaddingRight() {
-  return this->paddingRight;
-}
-
-uint16_t Canvas::getPaddingBottom() {
-  return this->paddingBottom;
-}
-
-
-void Canvas::setVAlign(CanvasVerticalAlignment vAlign) {
-  this->vAlign = vAlign;
-}
-
-void Canvas::setHAlign(CanvasHorizontalAlignment hAlign) {
-  this->hAlign = hAlign;
-}
-
-CanvasVerticalAlignment Canvas::getVAlign() {
-  return this->vAlign;
-}
-
-CanvasHorizontalAlignment Canvas::getHAlign() {
-  return this->hAlign;
-}
-
-uint16_t Canvas::getDrawableWidth() {
-  if (this->width > this->marginLeft + this->marginRight) {
-    return this->width - this->marginLeft - this->marginRight;
-  } else {
-    return 0;
-  }
-}
-
-uint16_t Canvas::getDrawableHeight() {
-  if (this->height > this->marginTop + this->marginBottom) {
-    return this->height - this->marginTop - this->marginBottom;
-  } else {
-    return 0;
-  }
-}
-
-int16_t Canvas::getDrawX() {
-  return this->x + this->marginLeft;
-}
-
-int16_t Canvas::getDrawY() {
-  return this->y + this->marginTop;
-}
-
-int16_t Canvas::getDrawRightX() {
-  return this->getDrawX() + this->getDrawableWidth();
-}
-
-int16_t Canvas::getDrawBottomY() {
-  return this->getDrawY() + this->getDrawableHeight();
-}
-
-int16_t Canvas::getRightX() {
-  return this->x + this->width;
-}
-
-int16_t Canvas::getBottomY() {
-  return this->y + this->height;
-}
-
-void Canvas::setBgColor(uint16_t bgColor) { 
+void Canvas::setBgColor(Color16Bit bgColor) { 
   invalidateIfNotEqual(this->bgColor, bgColor);
   for (CanvasRef childCanvas: this->children) {
     childCanvas->setBgColor(bgColor);
@@ -375,11 +168,11 @@ void Canvas::setBgColor(uint16_t bgColor) {
   this->invalidate();
 }
 
-uint16_t Canvas::getBgColor() {
+Color16Bit Canvas::getBgColor() {
   return this->bgColor;
 }
 
-void Canvas::setFgColor(uint16_t fgColor) { 
+void Canvas::setFgColor(Color16Bit fgColor) { 
   invalidateIfNotEqual(this->fgColor, fgColor);
   for (CanvasRef childCanvas: this->children) {
     childCanvas->setFgColor(fgColor);
@@ -387,7 +180,7 @@ void Canvas::setFgColor(uint16_t fgColor) {
   this->invalidate();
 }
 
-uint16_t Canvas::getFgColor() {
+Color16Bit Canvas::getFgColor() {
   return this->fgColor;
 }
 
@@ -400,12 +193,8 @@ bool Canvas::add (Canvas * childCanvas) {
   }
 }
 
-uint16_t Canvas::getTextWidth(String text) {
-  return tft->textWidth(text);
-}
+void Canvas::resetLayout() {
 
-uint16_t Canvas::getTextWidth(char * str) {
-  return tft->textWidth(str);
 }
 
 void Canvas::print() {
@@ -455,11 +244,9 @@ bool Canvas::redraw () {
       if(xSemaphoreTake(tftMutex, portMAX_DELAY) == pdTRUE) {
         result = draw();
         xSemaphoreGive(tftMutex);
-      } else {
-        Serial.println("Could not obtain the tft Mutex");
       }
   } else if (!this->visible && this->invalidated) {
-    tft->fillRect(this->x, this->y, this->width, this->height, this->bgColor);
+    drawFullBackground();
   }
   this->invalidated = 0;
   if (this->visible && this->changed) {
@@ -472,46 +259,42 @@ bool Canvas::draw() {
   if (drawBackgroundEnable) {
     drawBackground();
   }
+  drawBorder();
   #ifdef CANVAS_DEBUG
   this->drawDebugBorder();
   #endif
   return true;
 }
 
-bool Canvas::drawBackground() {
-  tft->fillRect(this->x, this->y, this->width, this->height, this->bgColor);
-  return true;
-}
-
-bool Canvas::redrawChildren() {
-  bool result = true;
-  for (Canvas * childCanvas: this->children) {
-    result = result && ~(childCanvas->redraw());
+void Canvas::drawBorder() {
+  if (borderLeft) {
+    tft->fillRect(this->x+this->paddingLeft,
+          this->y+this->paddingTop,
+          borderLeft,
+          this->getHeight() - this->paddingTop - this->paddingBottom,
+          borderColor);
   }
-  return result;
-}
-
-uint16_t Canvas::convert2rgb565 (uint32_t color) {
-  uint8_t blue = color;
-  uint8_t green = (color>> 8);
-  uint8_t red = (color>> 16);
-  return (((red & 0b11111000)<<8) + ((green & 0b11111100)<<3)+(blue>>3));
-}
-
-uint16_t Canvas::convert2rgb565 (uint8_t red, uint8_t green, uint8_t blue) {
-  return (((red & 0b11111000)<<8) + ((green & 0b11111100)<<3)+(blue>>3));
-}
-
-uint16_t Canvas::getRed(uint16_t color) {
-  return (color >> 8)&0b11111000;
-}
-
-uint16_t Canvas::getGreen(uint16_t color) {
-  return (color >> 3)&0b11111100;
-}
-
-uint16_t Canvas::getBlue(uint16_t color) {
-  return (color<<3)&0b11111000;
+  if (borderRight) {
+    tft->fillRect(this->getRightX()-this->paddingRight - 1,
+          this->y+this->paddingTop,
+          borderRight,
+          this->getHeight() - this->paddingTop - this->paddingBottom,
+          borderColor);
+  }
+  if (borderTop) {
+    tft->fillRect(this->x+this->paddingLeft,
+          this->y+this->paddingTop,
+          this->getWidth() - this->paddingLeft - this->paddingRight,
+          borderTop,
+          borderColor);
+  }
+  if (borderBottom) {
+    tft->fillRect(this->x+this->paddingLeft,
+          this->getBottomY() - this->paddingBottom - 1,
+          this->getWidth() - this->paddingLeft - this->paddingRight,
+          borderBottom,
+          borderColor);
+  }
 }
 
 #ifdef CANVAS_DEBUG
@@ -523,10 +306,6 @@ bool Canvas::drawDebugBorder() {
 #endif
 
 bool Canvas::handleTouch(TouchEvent event, TouchEventData eventData) {
-  //Serial.println("Handling touch for Canvas "+String(getLevel()));
-  //Serial.println("Touch at x = "+String(eventData.x)+" y = "+String(eventData.y));
-  //tft->drawPixel(eventData.x, eventData.y, CANVAS_DEBUG_MARGIN_BORDER_COLOR);
-  //Serial.println("Event type is "+String(event));
   #ifdef CANVAS_DEBUG
     this->drawDebugBorder();
   #endif
@@ -542,10 +321,6 @@ bool Canvas::handleTouch(TouchEvent event, TouchEventData eventData) {
     touchHandled = this->onTouchCallback(this, event, eventData);
   }
   return touchHandled;
-}
-
-void Canvas::onTouch(CanvasTouchCallback callback) {
-  this->onTouchCallback = callback;
 }
 
 bool Canvas::existsIn(uint16_t x, uint16_t y) {
@@ -569,10 +344,6 @@ void Canvas::setChanged() {
     this->parent->setChanged();
 }
 
-bool Canvas::isInvalid() {
-  return this->invalidated;
-}
-
 void Canvas::setVisible(bool visible) {
   invalidateIfNotEqual(this->visible, visible);
   for (Canvas * childCanvas: this->children) {
@@ -580,11 +351,11 @@ void Canvas::setVisible(bool visible) {
   }
 }
 
-bool Canvas::getVisible() {
+bool Canvas::isVisible() {
   return this->visible;
 }
 
-void Canvas::alignRight(Canvas * canvas) {
+void Canvas::hAlignLeft(Canvas * canvas) {
   uint16_t min_x = 0;
   if (parent != NULL) {
     min_x = parent->getDrawX();
@@ -597,7 +368,16 @@ void Canvas::alignRight(Canvas * canvas) {
   }
 }
 
-void Canvas::alignRight() {
+void Canvas::hAlignRight(Canvas * canvas) {
+  this->setX(canvas->getRightX());
+  if (parent != NULL) {
+    if (parent->getRightX() < this->getRightX()) {
+      this->width = this->width + parent->getRightX() - this->getRightX();
+    }
+  }
+}
+
+void Canvas::hAlignRight() {
   if (parent != NULL) {
     this->setX(this->parent->getDrawRightX() - this->getWidth());
   } else {
@@ -605,10 +385,63 @@ void Canvas::alignRight() {
   }
 }
 
-void Canvas::horizontalAlign(Canvas * leftCanvas, Canvas * rightCanvas) {
+void Canvas::hAlignLeft() {
+  if (parent != NULL) {
+    this->setX(this->parent->getX());
+  } else {
+    this->setX(0);
+  }
+}
+
+void Canvas::hAlignBetween(Canvas * leftCanvas, Canvas * rightCanvas) {
   if (leftCanvas->getRightX() < rightCanvas->getX()) {
     this->setX(leftCanvas->getRightX());
     this->setRightX(rightCanvas->getX());
+  }
+}
+
+void Canvas::vAlignTop(Canvas * canvas) {
+  uint16_t min_y = 0;
+  if (parent != NULL) {
+    min_y = parent->getDrawY();
+  }
+  if (canvas->getY() < (this->getHeight() - min_y)) {
+    this->setHeight(canvas->getY() - min_y);
+    this->setY(min_y);
+  } else {
+    this->setY(canvas->getY() - this->getHeight());
+  }
+}
+
+void Canvas::vAlignBottom(Canvas * canvas) {
+  this->setY(canvas->getBottomY());
+  if (parent != NULL) {
+    if (parent->getBottomY() < this->getBottomY()) {
+      this->height = this->height + parent->getBottomY() - this->getBottomY();
+    }
+  }
+}
+
+void Canvas::vAlignBottom() {
+  if (parent != NULL) {
+    this->setY(this->parent->getDrawBottomY() - this->getHeight());
+  } else {
+    this->setY(tft->height()-this->getHeight());
+  }
+}
+
+void Canvas::vAlignTop() {
+  if (parent != NULL) {
+    this->setY(this->parent->getY());
+  } else {
+    this->setY(0);
+  }
+}
+
+void Canvas::vAlignBetween(Canvas * topCanvas, Canvas * bottomCanvas) {
+  if (topCanvas->getBottomY() < bottomCanvas->getY()) {
+    this->setY(topCanvas->getBottomY());
+    this->setBottomY(bottomCanvas->getY());
   }
 }
 
@@ -648,7 +481,7 @@ Canvas* Canvas::get(uint16_t id) {
       return childCanvas;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 void Canvas::setDrawBackgroundEnable(bool enable) {

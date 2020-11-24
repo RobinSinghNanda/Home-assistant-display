@@ -1,4 +1,6 @@
 #include "ImageCanvas.hpp"
+#include <rom/miniz.h>
+#include "Log.hpp"
 
 ImageCanvas::ImageCanvas(Canvas * canvas, uint16_t id) : Canvas(canvas, id) {
     this->path = "";
@@ -15,7 +17,7 @@ void ImageCanvas::setPath(String path) {
     invalidateIfNotEqual(this->path, path);
     this->imageType = ImageTypeBin;
   } else {
-    String s_icon = "/"+path+".bin";
+    String s_icon = "/"+path;
     s_icon.replace(":","/");
     invalidateIfNotEqual(this->path, s_icon);
     this->imageType = ImageTypeBin;
@@ -31,31 +33,38 @@ uint16_t ImageCanvas::getMaskColor() {
   return this->maskColor;
 }
 
+void ImageCanvas::setScale(uint8_t scale) {
+  if (scale != 0 && scale < 8) {
+    invalidateIfNotEqual(this->scale, scale);
+  }
+}
+
+uint8_t ImageCanvas::getScale() {
+  return this->scale;
+}
+
 bool ImageCanvas::draw() {
-  fs::File file = SPIFFS.open( this->path, "r");    // File handle reference for SPIFFS
-  //  File jpegFile = SD.open( filename, FILE_READ);  // or, file handle reference for SD library
+  Canvas::draw();
+  if (this->path == "/") {
+    this->drawBackground();
+    return false;
+  }
+  fs::File file = SPIFFS.open( this->path, "r");
  
   if ( !file ) {
-    Serial.print("ERROR: File \""); Serial.print(this->path); Serial.println ("\" not found!");
+    Log::log(LOG_LEVEL_ERROR, D_LOG_LCD "ERROR: File \"%s\" not found!", this->path);
     return 0;
   }
   if (this->imageType == ImageTypeBin) {
     this->renderBin();
     return 1;
   }
-  boolean decoded = JpegDec.decodeFsFile(this->path);  // or pass the filename (leading / distinguishes SPIFFS files)
-                                   // Note: the filename can be a String or character array type
+  boolean decoded = JpegDec.decodeFsFile(this->path);
   if (decoded) {
-    // print information about the image to the serial port
-    //jpegInfo();
-
-    // render the image onto the screen at given coordinates
     this->renderJPEG();
     return 1;
-  }
-  else {
-    Serial.print("Jpeg file format not supported!");
-    Serial.println(this->path);
+  } else {
+    Log::log(LOG_LEVEL_ERROR, D_LOG_LCD "Jpeg file decoding failed for \"%s\"", this->path);
   }
   return 1;
 }
@@ -69,7 +78,7 @@ void ImageCanvas::renderBin() {
 
   fs::File file = SPIFFS.open( this->path, "r");
   if ( !file ) {
-    Serial.print("ERROR: File \""); Serial.print(this->path); Serial.println ("\" not found!");
+    Log::log(LOG_LEVEL_ERROR, D_LOG_LCD "ERROR: File \"%s\" not found!", this->path);
     return;
   }
 
@@ -79,27 +88,23 @@ void ImageCanvas::renderBin() {
   if (file.available()) {
     int num = file.read();
     if (num == -1) {
-      Serial.print("Failed to read the format");
       file.close();
       return;
     }
     format = num;
     if (num >= 5 || num <= 0) {
-      Serial.print("Format not supported");
       file.close();
       return;
     }
     width = num;
     num = file.read();
     if (num == -1) {
-      Serial.print("Failed to read the width");
       file.close();
       return;
     }
     width = num;
     num = file.read();
     if (num == -1) {
-      Serial.print("Failed to read the height");
       file.close();
       return;
     }
@@ -146,37 +151,37 @@ void ImageCanvas::renderBin() {
   } else if (format == 3) {
     while (file.available() && num_pixels > 0) {
       pImg = file.read();
-      uint16_t red = (pImg+1)*this->getRed(this->fgColor);
-      uint16_t green = (pImg+1)*this->getGreen(this->fgColor);
-      uint16_t blue = (pImg+1)*this->getBlue(this->fgColor);
+      uint16_t red = (pImg+1)*fgColor.getRed();
+      uint16_t green = (pImg+1)*fgColor.getGreen();
+      uint16_t blue = (pImg+1)*fgColor.getBlue();
       pImg = file.read();
-      red += (pImg+1)*this->getRed(this->bgColor);
-      green += (pImg+1)*this->getGreen(this->bgColor);
-      blue += (pImg+1)*this->getBlue(this->bgColor);
+      red += (pImg+1)*bgColor.getRed();
+      green += (pImg+1)*bgColor.getGreen();
+      blue += (pImg+1)*bgColor.getBlue();
       red >>= 8;
       green >>= 8;
       blue >>= 8;
-      tft->pushColor(this->convert2rgb565(red, green, blue));
+      tft->pushColor(Color16Bit(red, green, blue));
       num_pixels--;
     }
   } else if (format == 4) {
     while (file.available() && num_pixels > 0) {
       pImg = file.read();
-      uint16_t red = (pImg+1)*this->getRed(this->fgColor);
-      uint16_t green = (pImg+1)*this->getGreen(this->fgColor);
-      uint16_t blue = (pImg+1)*this->getBlue(this->fgColor);
+      uint16_t red = (pImg+1)*fgColor.getRed();
+      uint16_t green = (pImg+1)*fgColor.getGreen();
+      uint16_t blue = (pImg+1)*fgColor.getBlue();
       pImg = file.read();
-      red += (pImg+1)*this->getRed(this->bgColor);
-      green += (pImg+1)*this->getGreen(this->bgColor);
-      blue += (pImg+1)*this->getBlue(this->bgColor);
+      red += (pImg+1)*bgColor.getRed();
+      green += (pImg+1)*bgColor.getGreen();
+      blue += (pImg+1)*bgColor.getBlue();
       pImg = file.read();
-      red += (pImg+1)*this->getRed(this->maskColor);
-      green += (pImg+1)*this->getGreen(this->maskColor);
-      blue += (pImg+1)*this->getBlue(this->maskColor);
+      red += (pImg+1)*maskColor.getRed();
+      green += (pImg+1)*maskColor.getGreen();
+      blue += (pImg+1)*maskColor.getBlue();
       red >>= 8;
       green >>= 8;
       blue >>= 8;
-      tft->pushColor(this->convert2rgb565(red, green, blue));
+      tft->pushColor(Color16Bit(red, green, blue));
       num_pixels--;
     }
   } 

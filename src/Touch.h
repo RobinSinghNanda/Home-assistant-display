@@ -10,23 +10,21 @@
 #define DRAGED 4
 #define LONG_PRESSED 5
 
-
 enum TouchEvent {
-  TouchActionTapped = ((1<<SINGLE_TAPPED)<<PRESSED),
-  TouchActionDoubleTapped = ((1<<DOUBLE_TAPPED)<<PRESSED),
-  TouchActionDraged = ((1<<DRAGED)<<PRESSED),
-  TouchActionLongPressed = ((1<<LONG_PRESSED)<<PRESSED),
-  TouchActionTapAndDrag = (((1<<DOUBLE_TAPPED)|(1<<DRAGED))<<PRESSED),
-  TouchActionLongPressedAndDragged = (((1<<LONG_PRESSED)|(1<<DRAGED))<<PRESSED),
-  TouchActionTapAndLongPress = (((1<<DOUBLE_TAPPED)|(1<<LONG_PRESSED))<<PRESSED),
-
-  TouchActionTapReleased = ((1<<SINGLE_TAPPED)<RELEASED),
-  TouchActionLongPressReleased = ((1<<LONG_PRESSED)<<RELEASED),
-  TouchActionDragReleased = ((1<<DRAGED)<<RELEASED),
-  TouchActionLongPressedAndDraggedReleased = (((1<<LONG_PRESSED)|(1<<DRAGED))<<RELEASED),
-  TouchActionDoubleTapReleased = ((1<<DOUBLE_TAPPED)<<RELEASED),
-  TouchActionTapAndLongPressReleased = (((1<<DOUBLE_TAPPED)|(1<<LONG_PRESSED))<<RELEASED),
-  TouchActionTapAndDragReleased = (((1<<DOUBLE_TAPPED)|(1<<DRAGED)<<RELEASED)),
+  TouchActionPressed = ((1<<SINGLE_TAPPED)<<PRESSED),
+  TouchActionDoublePressed = ((1<<DOUBLE_TAPPED)<<PRESSED)|((1<<SINGLE_TAPPED)<<PRESSED),
+  TouchActionDraged = ((1<<DRAGED)<<PRESSED)|((1<<SINGLE_TAPPED)<<PRESSED),
+  TouchActionLongPressed = ((1<<LONG_PRESSED)<<PRESSED)|((1<<SINGLE_TAPPED)<<PRESSED),
+  TouchActionTapAndDrag = (((1<<DOUBLE_TAPPED)|(1<<DRAGED))<<PRESSED|((1<<SINGLE_TAPPED)<<PRESSED)),
+  TouchActionLongPressedAndDragged = (((1<<LONG_PRESSED)|(1<<DRAGED))<<PRESSED|((1<<SINGLE_TAPPED)<<PRESSED)),
+  TouchActionTapAndLongPress = (((1<<DOUBLE_TAPPED)|(1<<LONG_PRESSED))<<PRESSED|((1<<SINGLE_TAPPED)<<PRESSED)),
+  TouchActionTapped = ((1<<SINGLE_TAPPED)<<RELEASED),
+  TouchActionLongPressReleased = (((1<<LONG_PRESSED)<<RELEASED)|((1<<SINGLE_TAPPED)<<RELEASED)),
+  TouchActionDragReleased = ((1<<DRAGED)<<RELEASED)|((1<<SINGLE_TAPPED)<<RELEASED),
+  TouchActionLongPressedAndDraggedReleased = (((1<<LONG_PRESSED)|(1<<DRAGED))<<RELEASED|((1<<SINGLE_TAPPED)<<RELEASED)),
+  TouchActionDoubleTapped = (((1<<DOUBLE_TAPPED)<<RELEASED)|((1<<SINGLE_TAPPED)<<RELEASED)),
+  TouchActionTapAndLongPressReleased = (((1<<DOUBLE_TAPPED)|(1<<LONG_PRESSED))<<RELEASED|((1<<SINGLE_TAPPED)<<RELEASED)),
+  TouchActionTapAndDragReleased = (((1<<DOUBLE_TAPPED)|(1<<DRAGED)<<RELEASED)|((1<<SINGLE_TAPPED)<<RELEASED)),
 };
 
 

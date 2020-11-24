@@ -1012,7 +1012,6 @@ void startwebServer(int type, IPAddress ipweb) {
         }, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
           if(!index){
             file = SPIFFS.open("/Main.json", "w");
-            Serial.printf("BodyStart: %u B\n", total);
           }
           for(size_t i=0; i<len; i++){
             file.write(data[i]);
@@ -1020,7 +1019,6 @@ void startwebServer(int type, IPAddress ipweb) {
           }
           if(index + len == total){
             file.close();
-            Serial.printf("BodyEnd: %u B\n", total);
           }
         });
       #endif
@@ -1789,7 +1787,6 @@ void HandleWifiConfiguration(AsyncWebServerRequest *request) {
 
   if (HTTP_MANAGER_RESET_ONLY != Web.state) {
     if (request->hasArg("scan")) {
-      Serial.println("Printing the scan");
       int n = WiFi.scanNetworks();
       Log::log(LOG_LEVEL_DEBUG, PSTR(D_LOG_WIFI D_SCAN_DONE));
 
@@ -1994,7 +1991,6 @@ void HandleOtherConfiguration(AsyncWebServerRequest *request) {
 void OtherSaveSettings(AsyncWebServerRequest *request) {
   const char * tmp = request->arg("dn").c_str();
   settings.setDeviceName(tmp);
-  Serial.println(String(tmp));
   tmp = request->arg("wp").c_str();
   settings.setWebPassword(tmp);
   tmp = request->arg("wu").c_str();

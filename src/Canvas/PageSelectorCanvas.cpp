@@ -21,56 +21,20 @@ PageSelectorCanvas::PageSelectorCanvas(Canvas * canvas, uint16_t id) : Canvas(ca
     this->selectedColor = PAGE_SELECTOR_SELECTED_COLOR;
     this->setHMargin(2*PAGE_SELECTOR_SELECTED_RAD);
     using namespace std::placeholders;
-    onTouch(std::bind(&PageSelectorCanvas::onTouchEventCallback, this, _2, _3));
-}
-
-bool PageSelectorCanvas::onTouchEventCallback (TouchEvent event, TouchEventData eventData) {
-    if (event & TouchActionTapped) {
-        uint16_t nextPage = this->selectedPage + 1;
-        if (nextPage == this->numPages) {
-            nextPage = 0;
-        }
-        this->tempPosition = nextPage;
-        this->selectedPage = nextPage;
-        this->draw();
-        if (this->prevSelectedPage != this->selectedPage) {
-            onValueChangeCallback(this, this->selectedPage, this->prevSelectedPage);
-            this->prevSelectedPage = this->selectedPage;
-        }
-    } else if (event & TouchActionDraged) {
-        uint16_t pageSelectorWidth = this->getDrawableWidth()/this->numPages;
-        double deltaX = (eventData.endX - eventData.startX)*this->dragScale;
-        if (this->limitStep) {
-            if (deltaX > pageSelectorWidth) {
-                deltaX = pageSelectorWidth;
-            } else if (deltaX < -pageSelectorWidth) {
-                deltaX = -pageSelectorWidth;
+    this->onTouch([this](Canvas *, TouchEvent event, TouchEventData eventData)->bool {
+            if (isEvent(event, TouchActionTapped)) {
+                uint16_t nextPage = this->selectedPage + 1;
+                if (nextPage == this->numPages) {
+                    nextPage = 0;
+                }
+                this->selectedPage = nextPage;
+                onValueChangeCallback(this, this->selectedPage, this->prevSelectedPage);
+                this->prevSelectedPage = this->selectedPage;
+                this->invalidate();
+                return true;
             }
-        }
-        this->tempPosition = (double)this->selectedPage + (double)deltaX/(double)pageSelectorWidth;
-        if (tempPosition < 0) {
-            tempPosition = 0;
-        } else if (tempPosition > this->numPages-1) {
-            tempPosition = this->numPages-1;
-        }
-        this->draw();
-        return true;
-    } else if (event & TouchActionDragReleased) {
-        int16_t intValue = tempPosition;
-        if (tempPosition - intValue > 0.5) {
-            tempPosition = intValue + 1;
-        } else {
-            tempPosition = intValue;
-        }
-        this->selectedPage = tempPosition;
-        this->draw();
-        if (this->prevSelectedPage != this->selectedPage) {
-            onValueChangeCallback(this, this->selectedPage, this->prevSelectedPage);
-            this->prevSelectedPage = this->selectedPage;
-        }
-        return true;
-    }
-    return false;
+            return false;
+        });
 }
 
 void PageSelectorCanvas::setSelectedColor(uint16_t color) {
@@ -149,7 +113,7 @@ void PageSelectorCanvas::fillCircle(uint16_t x, uint16_t y, uint16_t color) {
     for (uint16_t i=0; i<6; i++) {
         for (uint16_t j=0; j<4; j++) {
             uint8_t color8Bit;
-            uint16_t color16Bit;
+            Color16Bit color16Bit;
             color8Bit = (*(cirleImage+i*4+j))&0xF0;
             color16Bit = tft->alphaBlend(color8Bit, color, bgColor);
             if (color16Bit != bgColor)

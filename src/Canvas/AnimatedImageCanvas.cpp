@@ -18,14 +18,12 @@ AnimatedImageCanvas::AnimatedImageCanvas(Canvas * canvas, uint16_t id) : ImageCa
 AnimatedImageCanvas::~AnimatedImageCanvas(){
     if(xSemaphoreTake(tftMutex, portMAX_DELAY) == pdTRUE) {       
         if (xTimerIsTimerActive( animatationTimer )) {
-            Serial.println("Timer is active");
             xTimerDelete(animatationTimer, 1000);
         } else {
             xTimerDelete(animatationTimer, 1000);
         }
         xSemaphoreGive(tftMutex);
     } else {
-        Serial.println("Could not obtain the tft Mutex");
     }
 }
 
@@ -61,11 +59,9 @@ void AnimatedImageCanvas::clearImages() {
 void AnimatedImageCanvas::start() {
     if (xTimerIsTimerActive( animatationTimer ) == pdFALSE) {
         if(xSemaphoreTake(tftMutex, portMAX_DELAY) == pdTRUE) {
-            Serial.println("Animationt timer started");
             xTimerStart(animatationTimer, 1000);
             xSemaphoreGive(tftMutex);
         } else {
-            Serial.println("Could not obtain the tft Mutex");
         }
     }
 }
@@ -73,11 +69,8 @@ void AnimatedImageCanvas::start() {
 void AnimatedImageCanvas::stop() {
     if (xTimerIsTimerActive( animatationTimer ) != pdFALSE) {
         if(xSemaphoreTake(tftMutex, portMAX_DELAY) == pdTRUE) {
-            Serial.println("Animation timer stopped");
             xTimerStop(animatationTimer, 1000);
             xSemaphoreGive(tftMutex);
-        } else {
-            Serial.println("Could not obtain the tft Mutex");
         }
     }
 }

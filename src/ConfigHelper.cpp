@@ -4,7 +4,8 @@
 #include <FS.h>
 
 #include "ConfigHelper.hpp"
-
+#include "LovelaceConfig/CardTypes.hpp"
+#include "LovelaceConfig/CardConfigParser.hpp"
 
 StaticJsonDocument<6000> doc;
 
@@ -12,7 +13,7 @@ void printScreenConfiguration(ScreenConfig * screenConfig) {
   Serial.println("#Screen config start");
   Serial.println("screen_config:");
   // for (uint8_t page_index = 0;page_index<screenConfig->num_pages;page_index++) {
-  //   if (screenConfig->pages[page_index] != NULL && (screenConfig->pages[page_index])->type == PAGE_TYPE_ENTITES) {
+  //   if (screenConfig->pages[page_index] != NULL && (screenConfig->pages[page_index])->type == EntitiesCardConfig::TYPE) {
   //     Serial.print("  - type: ");
   //     Serial.println((screenConfig->pages[page_index])->type);
   //     Serial.print("    title: ");
@@ -27,7 +28,7 @@ void printScreenConfiguration(ScreenConfig * screenConfig) {
   //       Serial.println("");
   //     }
   //     for (uint8_t row_index = 0;row_index<pageConfig->numEntities;row_index++) {
-  //       if (pageConfig->entities[row_index] != NULL && pageConfig->entities[row_index]->type == ENTITES_ROW_TYPE_DEFAULT) {
+  //       if (pageConfig->entities[row_index] != NULL && pageConfig->entities[row_index]->type == DefaultRowConfig::TYPE) {
   //         DefaultEntityConfig * rowConfig =  (DefaultEntityConfig *) pageConfig->entities[row_index];
   //         Serial.print("      - entity: ");
   //         Serial.println(rowConfig->entity);
@@ -48,131 +49,6 @@ void printScreenConfiguration(ScreenConfig * screenConfig) {
   Serial.println("#Screen config end");
 }
 
-BaseRowConfig * parseRowConfiguration (JsonVariant rowVariant) {
-   if (rowVariant.is<String>()) {
-      return new DefaultRowConfig(rowVariant.as<String>().c_str());
-  } else if (rowVariant.is<JsonObject>()){
-    JsonObject entityObject = rowVariant.as<JsonObject>();
-    if (entityObject.containsKey("type")) {
-      if (entityObject["type"] == ENTITES_ROW_TYPE_BUTTONS) {
-        return parseButtonRowConfigurtion(entityObject);
-      }
-    } else {
-      if (entityObject.containsKey("entity")) {
-        return new DefaultRowConfig(entityObject["entity"].as<String>().c_str(),
-            entityObject["name"] | "",
-            entityObject["icon"] | "",
-            entityObject["state_color"] | 0,
-            entityObject["hide_if_unavailable"] | 0);
-      } else {
-        return new DefaultRowConfig("");
-      }
-    }
-  }
-  return NULL;
-}
-
-ButtonsRowConfig * parseButtonRowConfigurtion(JsonObject entityObject) {
-  if (entityObject.containsKey("buttons")) {
-    if (entityObject["buttons"].is<JsonArray>()) {
-      ButtonsRowConfig * buttonsRowConfig = new ButtonsRowConfig();
-      JsonArray buttonsArray = entityObject["buttons"].as<JsonArray>();
-      for (int buttonIndex = 0;buttonIndex<buttonsArray.size();buttonIndex++) {
-        buttonsRowConfig->addButton(parseRowConfiguration(buttonsArray[buttonIndex]));
-      }
-      return buttonsRowConfig;
-    } else {
-      return NULL;
-    }
-  } else {
-    return NULL;
-  }
-  return NULL;
-}
-
-EntitesCardConfig * parseEntitiesCardConfiguration(JsonObject cardObject) {
-  EntitesCardConfig * entitiesCard = new EntitesCardConfig(cardObject["title"] | "",
-        cardObject["icon"] | "");
-  if ((cardObject["entities"].is<JsonArray>())) {
-    JsonArray entitesArray = (cardObject["entities"]).as<JsonArray>();
-    for (uint8_t entityIndex=0;entityIndex<entitesArray.size();entityIndex++) {
-      entitiesCard->addEntity(parseRowConfiguration(entitesArray[entityIndex]));
-    }
-    return entitiesCard;
-  }
-  return entitiesCard;
-}
-
-HorizontalStackCardConfig * parseHorizontalStackCardConfiguration(JsonObject cardObject) {
-  if (cardObject.containsKey("cards")) {
-    if (cardObject["cards"].is<JsonArray>()) {
-      HorizontalStackCardConfig * horizontalStackCardConfig = new HorizontalStackCardConfig(cardObject["title"]|"", cardObject["icon"]|"");
-      for (JsonVariant cardConfig:cardObject["cards"].as<JsonArray>()) {
-        horizontalStackCardConfig->addCard(parseCardConfiguration(cardConfig));
-      }
-      return horizontalStackCardConfig;
-    } else {
-      return NULL;
-    }
-  } else {
-    return NULL;
-  }
-}
-
-VerticalStackCardConfig * parseVerticalStackCardConfiguration(JsonObject cardObject) {
-  if (cardObject.containsKey("cards")) {
-    if (cardObject["cards"].is<JsonArray>()) {
-      VerticalStackCardConfig * verticalStackCardConfig = new VerticalStackCardConfig(cardObject["title"]|"", cardObject["icon"]|"");
-      for (JsonVariant cardConfig:cardObject["cards"].as<JsonArray>()) {
-        verticalStackCardConfig->addCard(parseCardConfiguration(cardConfig));
-      }
-      return verticalStackCardConfig;
-    } else {
-      return NULL;
-    }
-  } else {
-    return NULL;
-  }
-}
-
-BaseCardConfig * parseCardConfiguration(JsonVariant cardVariant) {
-  if (cardVariant.is<JsonObject>()) {
-    JsonObject cardObject = cardVariant.as<JsonObject>();
-    if (cardObject["type"]) {
-      if (cardObject["type"] == PAGE_TYPE_ENTITES) {
-        return parseEntitiesCardConfiguration(cardObject);
-      } else if (cardObject["type"] == PAGE_TYPE_LIGHT) {
-        return new LightCardConfig(cardObject["entity"] | "",
-            cardObject["title"]|"",
-            cardObject["icon"]|"",
-            cardObject["state_color"]|false
-          );
-      } else if (cardObject["type"] == PAGE_TYPE_FAN) {
-        return new FanCardConfig(cardObject["entity"] | "",
-            cardObject["title"]|"",
-            cardObject["icon"]|"",
-            cardObject["state_color"]|false
-          );
-      } else if (cardObject["type"] == PAGE_TYPE_SWITCH) {
-        return new SwitchCardConfig(cardObject["entity"] | "",
-            cardObject["title"]|"",
-            cardObject["icon"]|"",
-            cardObject["state_color"]|false
-          );
-      } else if (cardObject["type"] == PAGE_TYPE_HORIZONTAL_STACK) {
-        return parseHorizontalStackCardConfiguration(cardObject);
-      } else if (cardObject["type"] == PAGE_TYPE_VERTICAL_STACK) {
-        return parseVerticalStackCardConfiguration(cardObject);
-      }
-    } else {
-      return NULL;
-    }
-  } else {
-    return NULL;
-  }
-  return NULL;
-}
-
 void loadScreenConfiguration(const char *filename, ScreenConfig * screenConfig) {
   fs::File configFile = SPIFFS.open(filename, "r");
 
@@ -186,13 +62,16 @@ void loadScreenConfiguration(const char *filename, ScreenConfig * screenConfig) 
   if (doc.is<JsonArray>()) {
     JsonArray screens = doc.as<JsonArray>();
     for(uint8_t screenIndex=0;screenIndex<screens.size();screenIndex++) {
-      screenConfig->addCard(parseCardConfiguration(screens[screenIndex]));
+      if (screens[screenIndex].is<JsonObject>()) {
+        screenConfig->addCard(CardConfigParser::parseCardConfig(screens[screenIndex]));
+      }
     }
   } else {
     Serial.println(F("The root is expected to array type"));
   }
   configFile.close();
 }
+
 #ifndef FIRMWARE_MINIMAL
 void loadCachedStateConfiguration(const char *filename, HomeAssistantConfig * homeassistantConfig) {
   fs::File configFile = SPIFFS.open(filename, "r");

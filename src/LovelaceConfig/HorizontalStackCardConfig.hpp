@@ -2,7 +2,7 @@
 #define __HORIZONTALSTACKCARDCONFIG_H__
 
 #include "BaseCardConfig.hpp"
-#include "CardDefines.hpp"
+#include "CardTypes.hpp"
 #include <stdlib.h>
 #include <vector>
 #include <stdint.h>
@@ -11,6 +11,7 @@ class HorizontalStackCardConfig : public BaseCardConfig {
     public:
         HorizontalStackCardConfig();
         HorizontalStackCardConfig(const char * title, const char * icon);
+        static constexpr const char * TYPE = "horizontal-stack";
         void addCard(BaseCardConfig * card);
         uint16_t getNumCards();
         BaseCardConfig * getCard(uint16_t index);

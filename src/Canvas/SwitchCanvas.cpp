@@ -8,7 +8,7 @@ SwitchCanvas::SwitchCanvas(Canvas * canvas, uint16_t id) : ImageCanvas(canvas, i
     this->onStateChangeCallback = [](SwitchCanvas*, bool)->bool{return false;};
     this->setImagePath();
     this->maskColor = TFT_WHITE;
-    this->secondaryColor = this->convert2rgb565(0x03a9f4);
+    this->secondaryColor = Color32Bit(0x03a9f4).get16Bit();
     this->surfaceColor = TFT_WHITE;
     this->onSurfaceColor = TFT_BLACK;
     onTouch(std::bind(&SwitchCanvas::onTouchEventCallback, this, _2, _3));
@@ -31,8 +31,9 @@ SwitchCanvas:: SwitchCanvas(SwitchCanvas * canvas, uint16_t id): ImageCanvas(can
 }
 
 void SwitchCanvas::setState(bool state) {
-    if (this->state != state) {
+    if (this->state != state || disabled) {
         this->state = state;
+        this->disabled = false;
         this->setImagePath();
         this->invalidate();
     }

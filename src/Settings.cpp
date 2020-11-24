@@ -50,7 +50,7 @@ void Settings::load() {
     NvmHelper::NvmLoad("main", "settings", this, sizeof(Settings));
 #ifndef FIRMWARE_MINIMAL
     if ((this->magic != (uint16_t)SETTINGS_MAGIC)) {
-        Serial.println("Using defualt settings");
+        Log::log(LOG_LEVEL_INFO, D_LOG_APPLICATION "Using defualt settings");
         this->setDefault();
     }
 #endif  // FIRMWARE_MINIMAL

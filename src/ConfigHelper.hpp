@@ -1,18 +1,15 @@
 #ifndef CONFIG_HELPER_H
 #define CONFIG_HELPER_H
 
+#include "ArduinoJson.h"
 #include <Arduino.h>
 #include <SPIFFS.h>
 #include "ScreenConfig.hpp"
 #ifndef FIRMWARE_MINIMAL
-#include "HomeAssistant.hpp"
+#include "HomeAssistant/HomeAssistantClient.hpp"
+using namespace HomeAssistant;
 #endif
-BaseRowConfig * parseRowConfiguration (JsonVariant rowVariant);
-ButtonsRowConfig * parseButtonRowConfigurtion(JsonObject entityObject);
-EntitesCardConfig * parseEntitiesCardConfiguration(JsonObject cardObject);
-HorizontalStackCardConfig * parseHorizontalStackCardConfiguration(JsonObject cardObject);
-VerticalStackCardConfig * parseVerticalStackCardConfiguration(JsonObject cardObject);
-BaseCardConfig * parseCardConfiguration(JsonVariant cardVariant);
+
 void loadScreenConfiguration(const char *filename, ScreenConfig * screenConfig);
 void printScreenConfiguration(ScreenConfig * screenConfig);
 #ifndef FIRMWARE_MINIMAL

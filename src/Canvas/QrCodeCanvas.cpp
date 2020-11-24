@@ -1,4 +1,5 @@
 #include "QrCodeCanvas.hpp"
+#include "Log.hpp"
 
 QrCodeCanvas::QrCodeCanvas(Canvas * canvas, uint16_t id) : Canvas(canvas, id) {
 
@@ -17,7 +18,7 @@ bool QrCodeCanvas::draw() {
     fs::File file = SPIFFS.open( qrPath, "r");
     tft->fillRect(this->x, this->y, this->width, this->height, TFT_WHITE);
     if ( !file ) {
-        Serial.print("ERROR: File \""); Serial.print(qrPath); Serial.println ("\" not found!");
+        Log::log(LOG_LEVEL_ERROR, D_LOG_LCD "ERROR: File \"%s\" not found!", qrPath);
         return false;
     }
     uint16_t xPos=0, yPos=0;

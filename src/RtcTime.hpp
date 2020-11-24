@@ -4,7 +4,7 @@
 
 static const uint8_t kDaysInMonth[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }; // API starts months from 1, this array starts from 0
 static const char kMonthNamesEnglish[] = "JanFebMarAprMayJunJulAugSepOctNovDec";
-static const char kDayNamesEngligh[] = "SatSunMonTueWedThuFri";
+static const char kDayNamesEngligh[] = "SunMonTueWedThuFriSat";
 enum WeekInMonthOptions {Last, First, Second, Third, Fourth};
 enum DayOfTheWeekOptions {Sun=1, Mon, Tue, Wed, Thu, Fri, Sat};
 enum MonthNamesOptions {Jan=1, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec};
@@ -75,6 +75,7 @@ String GetUptime(void);
 uint32_t MinutesPastMidnight(void);
 uint32_t RtcMillis(void);
 uint32_t MakeTime(TIME_T &tm);
+uint32_t MakeTime(const char * time);
 uint32_t RuleToTime(TimeRule r, int yr);
 void RtcSetTime(uint32_t epoch);
 void RtcInit(void);

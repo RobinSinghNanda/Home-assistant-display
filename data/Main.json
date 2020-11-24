@@ -75,12 +75,37 @@
       "entity": "switch.geyser",
       "name": "Geyser",
       "icon": "mdi:power-socket"
-   },{
-      "entity":"light.main_bedroom_bed_light",
-      "name": "Light",
-      "icon":"mdi:led-strip"
+   }, {
+      "entity": "input_number.geyser_max_on_time",
+      "name": "Time"
+   }, {
+      "entity": "input_text.text",
+      "name": "Text"
+   }, {
+      "entity": "input_text.password",
+      "name": "Pass"
+   }, {
+      "entity": "input_select.had38f2_rotation",
+      "name": "Page"
+   } , {
+      "entity": "script.1567976675043",
+      "name": "Script"
+   } , {
+      "entity": "scene.going_out",
+      "name": "Scene"
    }
   ],
   "title": "Bathroom",
   "icon": "mdi:home-assistant"
+},{
+   "type": "media-control",
+   "entity": "media_player.nanda_s_room"
+},{
+   "type": "alarm-panel",
+   "entity": "alarm_control_panel.home_alarm",
+   "title": "Alarm"
+}, {
+   "type": "weather-forecast",
+   "entity": "weather.dark_sky",
+   "title": "Dark Sky"
 }]

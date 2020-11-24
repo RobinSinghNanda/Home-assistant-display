@@ -3,6 +3,9 @@
 #include "Settings.hpp"
 #include "GlobalParams.hpp"
 #include "i18n.h"
+#include "soc/timer_group_struct.h"
+#include "soc/timer_group_reg.h"
+#include "Log.hpp"
 
 HTTPClient http;
 
@@ -19,6 +22,8 @@ HTTPClient http;
 ScreenConfig mainScreenConfig;
 ScreenConfig settingsScreenConfig;
 
+HomeAssistantClient homeAssistantClient(HOME_ASSITANT_WEBSOCKET, HOME_ASSITANT_AUTH_MESSAGE);
+HomeAssistantManager hass(&homeAssistantClient);
 char device_name[20];
 
 void touch_add_callback(CallbackFunction func) ;
@@ -44,9 +49,13 @@ TaskHandle_t HomeAssistantTaskHandle = NULL;
 #endif
 extern Settings settings;
 void setup(void) {
+  TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE;
+  TIMERG0.wdt_feed=1;
+  TIMERG0.wdt_wprotect=0;
+  disableCore0WDT();
   Serial.begin(115200L);
   if (!SPIFFS.begin()) {
-    Serial.println("SPIFFS initialisation failed!");
+    Log::log(LOG_LEVEL_ERROR, D_LOG_APPLICATION "SPIFFS initialisation failed!");
     while (1) yield(); // Stay here twiddling thumbs waiting
   }
   uint64_t chipid=ESP.getEfuseMac();
@@ -61,25 +70,17 @@ void setup(void) {
   snprintf(haplate_settings_page, sizeof(haplate_settings_page), "input_boolean.%s_settings_page", device_name);
   loadScreenConfiguration("/Main.json",&mainScreenConfig);
   getSettingsScreenConfig(&settingsScreenConfig);
-  //loadScreenConfiguration("/Settings.json",&settingsScreenConfig);
+  loadScreenConfiguration("/Settings.json",&settingsScreenConfig);
   analogReadResolution(10);
   tft_lcd_setup(&mainScreenConfig, &settingsScreenConfig);
   touch_begin();
-  touch_add_callback(&handle_touch);
+  touch_add_callback(&handleTouch);
   #ifndef FIRMWARE_MINIMAL
-  homeAssistant.setup();
+  homeAssistantClient.setup();
   #endif
-  //get state of dark mode
-  String dark_mode_state = homeAssistant.getState(haplate_dark_mode_entity);
-  if (dark_mode_state == "on") {
-    tft_set_dark_mode(1);
-  } else if (dark_mode_state == "off") {
-    tft_set_dark_mode(0);
-  }
-  drawScreen();
   #ifndef FIRMWARE_MINIMAL
-  homeAssistant.onEvent(homeAssistantEventCallback);
-  homeAssistant.onSyncMessage(homeAssistantSyncMessageCallback);
+  homeAssistantClient.onEvent(homeAssistantEventCallback);
+  homeAssistantClient.onSyncMessage(homeAssistantSyncMessageCallback);
   
   xTaskCreate(
                     homeAssistantTaskCode,       /* Function that implements the task. */
@@ -91,40 +92,26 @@ void setup(void) {
   //setup_wifi();
   add_entities(&mainScreenConfig);
   add_entities(&settingsScreenConfig);
+  drawScreen();
   #endif
-  MDNS.addService("http","tcp",80);
   settings.load();
   wifiManager.connect();
   RtcInit();
-  Serial.printf("Dark mode is %d\n", settings.isDarkMode());
-  // tft_set_dark_mode(settings.isDarkMode());
-  // tft_set_bottom_bar(settings.isBottomBar());
   if (strlen(settings.getStaWifiSsid1()) == 0 && strlen(settings.getStaWifiSsid2()) == 0) {
     globalParams.setScreenPageType(ScreenPageSetup);
   }
   updateEntityStates(1);
-  homeAssistant.addEntity(String(haplate_page_num));
-  homeAssistant.addEntity(String(haplate_settings_page));
-  homeAssistant.addEntity(String(haplate_rotation));
-  homeAssistant.addEntity(String(haplate_restart));
+  hass.addEntity(haplate_page_num);
+  hass.addEntity(haplate_settings_page);
+  hass.addEntity(haplate_rotation);
+  hass.addEntity(haplate_restart);
 }
 #ifndef FIRMWARE_MINIMAL
 void homeAssistantTaskCode( void * pvParameters ) {
   for( ;; ) {
-    #ifdef DISPLAY_INFO_STATS
-    uint32_t timeBeforeTask = millis();
-    #endif
     if (globalParams.isWifiConnected()) {
-      homeAssistant.loop();
+      homeAssistantClient.loop();
     }
-    #ifdef DISPLAY_INFO_STATS
-    uint32_t timeAfterTask = millis();
-    uint32_t timeTaken = (timeAfterTask - timeBeforeTask);
-    if (timeTaken != 0) {
-      Serial.print("Time taken to home assistant: ");
-      Serial.println(timeTaken);
-    }
-    #endif
     touch_poll();
     vTaskDelay(50/portTICK_PERIOD_MS);
   }
@@ -139,7 +126,17 @@ void Every50mSeconds () {
 
 }
 
+uint8_t entityNumToSync = 0;
 void Every100mSeconds () {
+  if (globalParams.isHomeAssistantConnected()) {
+    if (entityNumToSync < hass.getNumEntities()) {
+      hass.sync(hass.getEntity(entityNumToSync));
+      hass.subscribe(hass.getEntity(entityNumToSync));
+      entityNumToSync++;
+    }
+  } else {
+    entityNumToSync = 0;
+  }
   touch_poll();
 }
 
@@ -167,16 +164,13 @@ void Every500mSeconds () {
   globalParams.setWifiState(WIFI_RESTART);
   Webserver_loop();
   if (globalParams.isWifiConnected()) {
+    //MDNS.addService("http","tcp",80);
     startwebServer(2, WiFi.localIP());
   }
 }
 
-
 void PerformEverySecond () {
-  globalParams.incrUptime();;
-  if (globalParams.getScreenPageType() == ScreenPageScreenSaver) {
-    globalParams.setScreenRedraw(true);
-  }
+  globalParams.incrUptime();
   if (globalParams.getRestartFlag()) {
     if (2 == globalParams.getRestartFlag()) {
         settings.save();
@@ -222,7 +216,6 @@ void loop() {
   uint32_t my_activity = millis() - my_sleep;
   if (my_activity < (uint32_t)globalParams.getSleepTime()) {
     // if (my_activity != 0) {
-    //   Serial.printf("Sleeping for %d\n", (globalParams.getSleepTime() - my_activity));
     // }
     delay(globalParams.getSleepTime() - my_activity);  // Provide time for background tasks like wifi
   } else {
@@ -240,27 +233,41 @@ void loop() {
 
 void add_entities (ScreenConfig * screenConfig) {
   for (uint8_t cardIndex = 0;cardIndex<screenConfig->getNumCards();cardIndex++) {
-    if (screenConfig->getCard(cardIndex) != NULL && (String(screenConfig->getCard(cardIndex)->getType()) == PAGE_TYPE_ENTITES)) {
-      EntitesCardConfig * pageConfig = (EntitesCardConfig *) screenConfig->getCard(cardIndex);
-      for (uint8_t entityIndex =0;entityIndex<pageConfig->getNumEntites();entityIndex++) {
-        if (pageConfig->getEntityRow(entityIndex) != NULL) {
-          if (String(pageConfig->getEntityRow(entityIndex)->getType()) == ENTITES_ROW_TYPE_DEFAULT) {
-            DefaultRowConfig * rowConfig =  (DefaultRowConfig *) pageConfig->getEntityRow(entityIndex);
-            homeAssistant.addEntity(rowConfig->getEntityId());
-          } else if (String(pageConfig->getEntityRow(entityIndex)->getType()) == ENTITES_ROW_TYPE_BUTTONS) {
-            ButtonsRowConfig * rowConfig = (ButtonsRowConfig *) pageConfig->getEntityRow(entityIndex);
-            for (uint8_t button_index = 0;button_index<rowConfig->getNumButtons();button_index++) {
-              DefaultRowConfig * buttonConfig =  (DefaultRowConfig *) rowConfig->getButton(button_index);
-              homeAssistant.addEntity(buttonConfig->getEntityId());
+    if (screenConfig->getCard(cardIndex) != NULL) {
+      if (String(screenConfig->getCard(cardIndex)->getType()) == EntitiesCardConfig::TYPE) {
+        EntitiesCardConfig * pageConfig = (EntitiesCardConfig *) screenConfig->getCard(cardIndex);
+        for (uint8_t entityIndex =0;entityIndex<pageConfig->getNumEntites();entityIndex++) {
+          if (pageConfig->getEntityRow(entityIndex) != NULL) {
+            if (String(pageConfig->getEntityRow(entityIndex)->getType()) == DefaultRowConfig::TYPE) {
+              DefaultRowConfig * rowConfig =  (DefaultRowConfig *) pageConfig->getEntityRow(entityIndex);
+              hass.addEntity(rowConfig->getEntityId());
+            } else if (String(pageConfig->getEntityRow(entityIndex)->getType()) == ButtonsRowConfig::TYPE) {
+              ButtonsRowConfig * rowConfig = (ButtonsRowConfig *) pageConfig->getEntityRow(entityIndex);
+              for (uint8_t button_index = 0;button_index<rowConfig->getNumButtons();button_index++) {
+                DefaultRowConfig * buttonConfig =  (DefaultRowConfig *) rowConfig->getButton(button_index);
+                hass.addEntity(buttonConfig->getEntityId());
+              }
             }
           }
         }
+      } else if (screenConfig->getCard(cardIndex)->isType(MediaControlCardConfig::TYPE)) {
+        MediaControlCardConfig * cardConfig = (MediaControlCardConfig *) screenConfig->getCard(cardIndex);
+        hass.addEntity(cardConfig->getEntityId());
+      } else if (screenConfig->getCard(cardIndex)->isType(AlarmPanelCardConfig::TYPE)) {
+        AlarmPanelCardConfig * cardConfig = (AlarmPanelCardConfig *) screenConfig->getCard(cardIndex);
+        hass.addEntity(cardConfig->getEntityId());
+      } else if (screenConfig->getCard(cardIndex)->isType(WeatherForecastCardConfig::TYPE)) {
+        WeatherForecastCardConfig * cardConfig = (WeatherForecastCardConfig *) screenConfig->getCard(cardIndex);
+        hass.addEntity(cardConfig->getEntityId());
+      } else if (screenConfig->getCard(cardIndex)->isType(EntityCardConfig::TYPE)) {
+        EntityCardConfig * cardConfig = (EntityCardConfig *) screenConfig->getCard(cardIndex);
+        hass.addEntity(cardConfig->getEntityId());
       }
     }
   }
 }
 
-void homeAssistantEventCallback (HomeAssistant &assistant, HomeAssistantEvent event) {
+void homeAssistantEventCallback (HomeAssistantClient &assistant, HomeAssistantEvent event) {
   if (event == HomeAssistantConnected) {
     globalParams.setHomeAssistantConnected(true);
     globalParams.setHomeAssistantSyncing(false);
@@ -281,12 +288,10 @@ void homeAssistantEventCallback (HomeAssistant &assistant, HomeAssistantEvent ev
     globalParams.setHomeAssistantConnected(false);
     globalParams.setHomeAssistantSyncing(false);
     globalParams.setHomeAssistantConnectionFailed(true);
-  } else if (event == HomeAssistantRequestEnitityList) {
-    add_entities(&mainScreenConfig);
   }
 }
 
-void homeAssistantSyncMessageCallback (HomeAssistant &assistant, String entity_id, HomeAssistantEntity entity, HomeAssistantEntity  prevEntity) {
+void homeAssistantSyncMessageCallback (HomeAssistantClient &assistant, String entity_id, HomeAssistantEntity entity, HomeAssistantEntity  prevEntity) {
   char device_name[8];
   uint64_t chipid=ESP.getEfuseMac();
   uint16_t chip = (uint16_t)(chipid>>32);
@@ -330,7 +335,6 @@ void homeAssistantSyncMessageCallback (HomeAssistant &assistant, String entity_i
       settings.setScreenSaverEnable(false);
     }
   }
-  globalParams.setScreenRedraw(true);
 }
 
 void getSettingsScreenConfig(ScreenConfig * settingsScreenConfig) {
@@ -339,40 +343,40 @@ void getSettingsScreenConfig(ScreenConfig * settingsScreenConfig) {
   char device_name[8];
   char entity[40];
   snprintf(device_name,sizeof(device_name),"had%04x",chip);
-  EntitesCardConfig * cardConfig = new EntitesCardConfig("Display settings", "mdi:chevron-left");
+  EntitiesCardConfig * cardConfig = new EntitiesCardConfig("Display settings", ICON_CHEVRON_LEFT);
   settingsScreenConfig->addCard(cardConfig);
   snprintf(entity, sizeof(entity), "input_boolean.%s_dark_mode", device_name);
-  cardConfig->addEntity(new DefaultRowConfig(entity, "Darkmode", "mdi:theme-light-dark", true, false));
+  cardConfig->addEntity(new DefaultRowConfig(entity, "Darkmode", ICON_THEME_LIGHT_DARK, true, false));
   snprintf(entity, sizeof(entity), "input_boolean.%s_bottom_bar", device_name);
-  cardConfig->addEntity(new DefaultRowConfig(entity, "Bottombar", "mdi:page-layout-footer", true, false));
+  cardConfig->addEntity(new DefaultRowConfig(entity, "Bottombar", ICON_PAGE_LAYOUT_FOOTER, true, false));
   snprintf(entity, sizeof(entity), "input_boolean.%s_screen_saver", device_name);
-  cardConfig->addEntity(new DefaultRowConfig(entity, "Sreensaver", "mdi:clock-digital", true, false));
+  cardConfig->addEntity(new DefaultRowConfig(entity, "Sreensaver", ICON_CLOCK_DIGITAL, true, false));
   snprintf(entity, sizeof(entity), "input_boolean.%s_auto_brightness", device_name);
-  cardConfig->addEntity(new DefaultRowConfig(entity, "Auto brightness", "mdi:brightness-auto", true, false));
+  cardConfig->addEntity(new DefaultRowConfig(entity, "Auto brightness", ICON_BRIGHTNESS_AUTO, true, false));
   snprintf(entity, sizeof(entity), "input_boolean.%s_time_format", device_name);
-  cardConfig->addEntity(new DefaultRowConfig(entity, "24Hour format", "mdi:hours-24", true, false));
+  cardConfig->addEntity(new DefaultRowConfig(entity, "24Hour format", ICON_HOURS_24, true, false));
 
-  cardConfig = new EntitesCardConfig("Conn settings", "mdi:chevron-left");
+  cardConfig = new EntitiesCardConfig("Conn settings", ICON_CHEVRON_LEFT);
   settingsScreenConfig->addCard(cardConfig);
   snprintf(entity, sizeof(entity), "binary_sensor.%s_wifi_connected", device_name);
-  cardConfig->addEntity(new DefaultRowConfig(entity, "Wifi", "mdi:wifi", true, false));
+  cardConfig->addEntity(new DefaultRowConfig(entity, "Wifi", ICON_WIFI, true, false));
   snprintf(entity, sizeof(entity), "sensor.%s_wifi_ssid", device_name);
-  cardConfig->addEntity(new DefaultRowConfig(entity, "Wifi ssid", "mdi:wifi", false, false));
+  cardConfig->addEntity(new DefaultRowConfig(entity, "Wifi ssid", ICON_WIFI, false, false));
   snprintf(entity, sizeof(entity), "binary_sensor.%s_ha_connected", device_name);
-  cardConfig->addEntity(new DefaultRowConfig(entity, "HA", "mdi:home-assistant", true, false));
+  cardConfig->addEntity(new DefaultRowConfig(entity, "HA", ICON_HOME_ASSISTANT, true, false));
   snprintf(entity, sizeof(entity), "sensor.%s_ip", device_name);
-  cardConfig->addEntity(new DefaultRowConfig(entity, "IP", "mdi:ip", true, false));
+  cardConfig->addEntity(new DefaultRowConfig(entity, "IP", ICON_IP, true, false));
   snprintf(entity, sizeof(entity), "sensor.%s_uptime", device_name);
-  cardConfig->addEntity(new DefaultRowConfig(entity, "Uptime", "mdi:timer", true, false));
+  cardConfig->addEntity(new DefaultRowConfig(entity, "Uptime", ICON_TIMER, true, false));
 
-  cardConfig = new EntitesCardConfig("Other settings", "mdi:chevron-left");
+  cardConfig = new EntitiesCardConfig("Other settings", ICON_CHEVRON_LEFT);
   settingsScreenConfig->addCard(cardConfig);
   snprintf(entity, sizeof(entity), "input_boolean.%s_clear_cache", device_name);
-  cardConfig->addEntity(new DefaultRowConfig(entity, "Clear cache", "mdi:cached", true, false));
+  cardConfig->addEntity(new DefaultRowConfig(entity, "Clear cache", ICON_CACHED, true, false));
   snprintf(entity, sizeof(entity), "input_boolean.%s_restart", device_name);
-  cardConfig->addEntity(new DefaultRowConfig(entity, "Restart", "mdi:restart", true, false));
+  cardConfig->addEntity(new DefaultRowConfig(entity, "Restart", ICON_RESTART, true, false));
   snprintf(entity, sizeof(entity), "input_boolean.%s_reset", device_name);
-  cardConfig->addEntity(new DefaultRowConfig(entity, "Factory reset", "mdi:factory", true, false));
+  cardConfig->addEntity(new DefaultRowConfig(entity, "Factory reset", ICON_FACTORY, true, false));
 }
 
 void updateEntityStates(bool forceSync) {
@@ -386,54 +390,63 @@ void updateEntityStates(bool forceSync) {
   uint64_t chipid=ESP.getEfuseMac();
   uint16_t chip = (uint16_t)(chipid>>32);
   char device_name[8];
-  char entity[40];
+  char entity_id[40];
+  Entity * entity;
   snprintf(device_name,sizeof(device_name),"had%04x",chip);
   if (prevDarkMode != settings.isDarkMode() || forceSync) {
-    snprintf(entity, sizeof(entity), "input_boolean.%s_dark_mode", device_name);
-    homeAssistant.setState(String(entity), String(settings.isDarkMode()?S_ON:S_OFF));
-    globalParams.setScreenRedraw(true);
+    snprintf(entity_id, sizeof(entity_id), "input_boolean.%s_dark_mode", device_name);
+    entity = hass.getEntity(entity_id);
+    if (entity) {
+      entity->setState(settings.isDarkMode());
+    }
     prevDarkMode = settings.isDarkMode();
   }
   if (prevWifiConnected != globalParams.isWifiConnected() || forceSync) {
-    snprintf(entity, sizeof(entity), "binary_sensor.%s_wifi_connected", device_name);
-    homeAssistant.setState(String(entity), String(globalParams.isWifiConnected()?S_ON:S_OFF));
-    globalParams.setScreenRedraw(true);
+    snprintf(entity_id, sizeof(entity_id), "binary_sensor.%s_wifi_connected", device_name);
+    entity = hass.getEntity(entity_id);
+    if (entity) {
+      entity->setState(globalParams.isWifiConnected());
+    }
     prevWifiConnected = globalParams.isWifiConnected();
   }
   if (prevHomeAssistantConencted != globalParams.isHomeAssistantConnected() || forceSync) {
-    snprintf(entity, sizeof(entity), "binary_sensor.%s_ha_connected", device_name);
-    homeAssistant.setState(String(entity), String(globalParams.isHomeAssistantConnected()?S_ON:S_OFF));
-    globalParams.setScreenRedraw(true);
-    prevHomeAssistantConencted = globalParams.isHomeAssistantConnected();
-  }
-  if (prevHomeAssistantConencted != globalParams.isHomeAssistantConnected() || forceSync) {
-    snprintf(entity, sizeof(entity), "binary_sensor.%s_ha_connected", device_name);
-    homeAssistant.setState(String(entity), String(globalParams.isHomeAssistantConnected()?S_ON:S_OFF));
-    globalParams.setScreenRedraw(true);
+    snprintf(entity_id, sizeof(entity_id), "binary_sensor.%s_ha_connected", device_name);
+    entity = hass.getEntity(entity_id);
+    if (entity) {
+      entity->setState(globalParams.isHomeAssistantConnected());
+    }
     prevHomeAssistantConencted = globalParams.isHomeAssistantConnected();
   }
   if (prevIp != WiFi.localIP().toString() || forceSync) {
-    snprintf(entity, sizeof(entity), "sensor.%s_ip", device_name);
-    homeAssistant.setState(String(entity), WiFi.localIP().toString());
-    globalParams.setScreenRedraw(true);
+    snprintf(entity_id, sizeof(entity_id), "sensor.%s_ip", device_name);
+    entity = hass.getEntity(entity_id);
+    if (entity) {
+      entity->setState(WiFi.localIP().toString().c_str());
+    }
     prevIp = WiFi.localIP().toString();
   }
   if (prevSSID != WiFi.SSID() || forceSync) {
-    snprintf(entity, sizeof(entity), "sensor.%s_wifi_ssid", device_name);
-    homeAssistant.setState(String(entity), WiFi.SSID());
-    globalParams.setScreenRedraw(true);
+    snprintf(entity_id, sizeof(entity_id), "sensor.%s_wifi_ssid", device_name);
+    entity = hass.getEntity(entity_id);
+    if (entity) {
+      entity->setState(WiFi.SSID().c_str());
+    }
     prevSSID = WiFi.SSID();
   }
   if (prevUptime != globalParams.getUptime() || forceSync) {
-    snprintf(entity, sizeof(entity), "sensor.%s_uptime", device_name);
-    homeAssistant.setState(String(entity), globalParams.getUpTimeString());
-    globalParams.setScreenRedraw(true);
+    snprintf(entity_id, sizeof(entity_id), "sensor.%s_uptime", device_name);
+    entity = hass.getEntity(entity_id);
+    if (entity) {
+      entity->setState(globalParams.getUpTimeString().c_str());
+    }
     prevUptime = globalParams.getUptime();
   }
   if (prevScreenSaverEnabled != settings.isScreenSaverEnabled() || forceSync) {
-    snprintf(entity, sizeof(entity), "input_boolean.%s_screen_saver", device_name);
-    homeAssistant.setState(String(entity), (settings.isScreenSaverEnabled())?"on":"off");
-    globalParams.setScreenRedraw(true);
+    snprintf(entity_id, sizeof(entity_id), "input_boolean.%s_screen_saver", device_name);
+    entity = hass.getEntity(entity_id);
+    if (entity) {
+      entity->setState(settings.isScreenSaverEnabled());
+    }
     prevScreenSaverEnabled = settings.isScreenSaverEnabled();
   }
 }

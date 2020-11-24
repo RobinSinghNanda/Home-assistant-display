@@ -1,6 +1,8 @@
 #include "TextCanvas.hpp"
 
 TextCanvas::TextCanvas(Canvas * canvas, uint16_t id) : Canvas (canvas, id) {
+  this->drawBackgroundEnable = true;
+  this->stringFont = "";
 }
 
 void TextCanvas::setFont(String font) {
@@ -13,14 +15,12 @@ void TextCanvas::setFont(String font) {
 }
 
 bool TextCanvas::draw() {
-  if (refreshBackground || refreshBackgroundOnce) {
-    this->tft->fillRect(this->x, this->y, this->width, this->height, this->bgColor);
-    this->refreshBackgroundOnce = false;
-  }
+  Canvas::draw();
   if (this->getDrawableWidth() == 0 || this->getDrawableHeight() == 0) {
     return false;
   }
   if (this->text == "") {
+    
     return false;
   }
   if (textHeight > this->getDrawableHeight()) {
@@ -33,28 +33,30 @@ bool TextCanvas::draw() {
   uint16_t textWidth = tft->textWidth(text);
   if (textWidth > this->getDrawableWidth()) {
     bool widthReduced = false;
-    uint8_t str_length = text.length();
-    char * carr = new char [str_length + 1];
-    strncpy(carr, text.c_str(), str_length + 1);
-    for (uint8_t i=str_length-1;i > 0;i--) {
-      carr[i] = 0;
-      textWidth = tft->textWidth(carr);
-      if (textWidth <= this->getDrawableWidth()) {
+    char str[40];
+    char originalStr[40];
+    uint16_t length = strlen(text.c_str());
+    snprintf(originalStr, sizeof(originalStr), "%s", text.c_str());
+    while(true) {
+      snprintf(str, sizeof(str), "%s...", originalStr);
+      if (tft->textWidth(str) <= getMaxWidth()) {
         widthReduced = true;
         break;
+      } else if (length == 0) {
+        break;
       }
+      originalStr[length-1] = '\0';
+      length--;
     }
     if (!widthReduced) {
-      Serial.println("Failed to reduce the size");
       this->redrawChildren();
       return false;
     }
-    String reducedText = String(carr);
-    tft->setCursor(getCursorX(reducedText), getCursorY());
-    tft->print(carr);
+    tft->setCursor(getCursorX(str), getCursorY());
+    tft->print(str);
     return true;
   }
-  tft->setCursor(getCursorX(text), getCursorY());
+  tft->setCursor(getCursorX(text.c_str()), getCursorY());
   tft->print(text);
   return true;
 }
@@ -71,7 +73,7 @@ String TextCanvas::getText() {
     return this->text;
 }
 
-uint16_t TextCanvas::getCursorX(String str) {
+uint16_t TextCanvas::getCursorX(const char * str) {
   uint16_t cursorX = 0;
   uint16_t textWidth = tft->textWidth(str);
   if (hAlign == ALIGN_LEFT) {
@@ -98,4 +100,12 @@ uint16_t TextCanvas::getCursorY() {
 
 uint8_t TextCanvas::getTextHeight() {
   return tft->fontHeight();
+}
+
+void TextCanvas::resize() {
+  uint16_t textWidth = tft->textWidth(this->text);
+  this->width = textWidth + marginLeft + marginRight + paddingRight + paddingLeft + borderLeft + borderRight;
+  if (maxWidth && width > maxWidth) {
+    width = maxWidth;
+  }
 }

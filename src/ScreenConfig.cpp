@@ -1,10 +1,10 @@
 #include "ScreenConfig.hpp"
-
+#include "Log.hpp"
 void ScreenConfig::addCard(BaseCardConfig * baseCardConfig) {
-    if (cards.size() < 5) {
+    if (cards.size() < MAX_NUM_CARDS) {
         cards.insert(cards.end() , baseCardConfig);
     } else {
-        Serial.println("Max 5 cards are allowed");
+        Log::log(LOG_LEVEL_INFO, D_LOG_APPLICATION "Max %d cards are allowed. Discarding the rest", MAX_NUM_CARDS);
     }
 }
 BaseCardConfig * ScreenConfig::getCard(uint16_t index) {

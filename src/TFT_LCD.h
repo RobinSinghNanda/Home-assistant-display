@@ -9,12 +9,11 @@
 #include "Canvas/Canvas.hpp"
 #endif
 #ifndef FIRMWARE_MINIMAL
-#include "HomeAssistant.hpp"
+#include "HomeAssistant/Components/Components.hpp"
+#include "HomeAssistant/HomeAssistantManager.hpp"
 #endif
 
 #define NUM_TOUCH_REGIONS 10
-
-
 
 //IDS
 #define ID_HEADER_ICON 0
@@ -73,15 +72,6 @@
 #define ROW_TEXT_MARGIN_LEFT 5
 #define ROW_TEXT_MARGIN_BOTTOM 25
 
-enum TFTConnectionState {
-  TFT_FirstSetup,
-  TFT_WifiDisconnected,
-  TFT_WifiConnected,
-  TFT_WifiAlert,
-  TFT_HaConnected,
-  TFT_HaSyncing
-};
-
 enum ScreenPageType {
   ScreenPageBoot,
   ScreenPageSetup,
@@ -109,38 +99,11 @@ struct TFTConfig {
   ScreenConfig * screenSaverScreenConfig;
 };
 
-
 #define DEBUG_TOUCH_REGION 0
-
-struct Image {
-  String path = "";
-  uint16_t color = 0xFFFF;
-  uint16_t invert = 0;
-  uint16_t width = 0;
-  uint16_t height = 0;
-};
-
-struct Text {
-  String text = "";
-  uint16_t color = 0x0000;
-};
-
-struct TouchBox {
-  uint16_t touch_x;
-  uint16_t touch_y;
-  uint16_t touch_abs_x;
-  uint16_t touch_abs_y;
-  uint16_t box_x;
-  uint16_t box_y;
-  uint16_t box_width;
-  uint16_t box_height;
-};
 
 void tft_lcd_setup(ScreenConfig * mainScreenConfig, ScreenConfig * settingsScreenConfig);
 void buildHeaderCanvas (TFTConfig * tftConfig, Canvas headerCanvas);
-void tft_lcd_setup(ScreenConfig * mainScreenConfig, ScreenConfig * settingsScreenConfig);
 void tftSetScreenOrientation (ScreenOrientation rotation);
-uint32_t drawRow (TFTConfig * tftConfig, BaseRowConfig * row, Canvas * rowCanvas, Text &name, Image &icon, Image &state, Text &stateText);
 ScreenConfig * getScreenConfig (TFTConfig * tftConfig);
 uint32_t buildBodyCanvas (TFTConfig * tftConfig, Canvas * bodyCanvas);
 uint32_t drawScreen();
@@ -148,18 +111,10 @@ uint32_t buildScreenCanvas(Canvas * screenCanvasG);
 void buildHeaderCanvas (TFTConfig * tftConfig, Canvas * headerCanvas);
 uint32_t setScreenCanvasState (Canvas * screenCanvasG);
 void setHeaderCanvasState(TFTConfig * tftConfig, Canvas * headerCanvas);
-bool handle_touch(TouchEvent event, TouchEventData eventData);
-void set_row_state (String entity_id, String state);
-String get_row_state (String entity_id);
-String get_row_attribute (String entity_id, String attribute_name);
-void set_row_attribute (String entity_id, String attribute_name, String attribute_value);
+bool handleTouch(TouchEvent event, TouchEventData eventData);
  
 uint16_t convert2rgb565 (uint32_t color);
-void tft_set_dark_mode(uint8_t dark_mode);
-void tft_set_bottom_bar (uint8_t state);
 uint32_t tft_set_page_num (uint8_t page_num);
-void tft_set_settings_page (bool state);
-void tft_set_first_setup_page (uint8_t state);
 
 #ifndef FIRMWARE_MINIMAL
 bool handle_page_value_change (PageSelectorCanvas *canvas, uint16_t selectedPage, uint16_t prevSelectedPage);

@@ -29,6 +29,7 @@ class Support {
         static size_t strchrspn(const char *str1, int character);
         static void bufferFree(uint8_t * &buffer);
         static bool bufferAlloc(uint8_t * &buffer);
+        static void snprintfloat (char *s, size_t length, float num, int n);
 };
 
 

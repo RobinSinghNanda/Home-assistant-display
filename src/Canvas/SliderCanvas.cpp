@@ -38,17 +38,18 @@ SliderCanvas::SliderCanvas(Canvas * canvas, uint16_t id) : Canvas(canvas, id) {
     this->slideAnywhere = 0;
     this->disabled = false;
     this->invalidValue = true;
+    this->height = HEIGHT;
     if (canvas->getMarginLeft() == 0)
         this->marginLeft = SLIDER_MARGIN_LEFT;
-    else 
+    else
         this->marginLeft = canvas->getMarginLeft();
     if (canvas->getMarginRight() == 0)
         this->marginRight = SLIDER_MARGIN_RIGHT;
-    else 
+    else
         this->marginRight = canvas->getMarginRight();
-    knob_color = this->convert2rgb565(SLIDER_KNOB_COLOR);
-    slider_color = this->convert2rgb565(SLIDER_COLOR);
-    onValueChangeCallback = [](Canvas*, int16_t, int16_t){};
+    knob_color = Color32Bit(SLIDER_KNOB_COLOR).get16Bit();
+    slider_color = Color32Bit(SLIDER_COLOR).get16Bit();
+    onValueChangeCallback = [](Canvas*, int32_t, int32_t){};
     using namespace std::placeholders;
     onTouch(std::bind(&SliderCanvas::onTouchEventCallback, this, _2, _3));
 }
@@ -85,7 +86,7 @@ bool SliderCanvas::onTouchEventCallback (TouchEvent event, TouchEventData eventD
         }
         return true;
     } else if (event & TouchActionDraged) {
-        if (this->disabled)
+        if (this->disabled || this->viewOnly)
             return true;
         touched = true;
         double tmp_value;
@@ -115,7 +116,7 @@ bool SliderCanvas::onTouchEventCallback (TouchEvent event, TouchEventData eventD
         }
         return true;
     } else if (event & TouchActionDragReleased) {
-        if (this->disabled)
+        if (this->disabled || this->viewOnly)
             return true;
         touched = false;
         if (this->prevValue != this->value) {
@@ -134,6 +135,10 @@ bool SliderCanvas::draw() {
         this->getDrawY()+1,
         this->getDrawableWidth()-2,
         this->getDrawableHeight()-2);
+    uint16_t value_x = SLIDER_MARGIN_LEFT +
+            + ((this->getValue() - this->getMin())*
+            (this->getDrawableWidth() - SLIDER_MARGIN_RIGHT - SLIDER_MARGIN_LEFT))
+            /(this->getMax()-1-this->getMin());
     for (uint16_t y = 1;y < this->getDrawableHeight()-1;y++) {
         for (uint16_t x=1; x < this->getDrawableWidth()-1;x++) {
             uint16_t bgColor = this->getBgColor();
@@ -144,7 +149,11 @@ bool SliderCanvas::draw() {
                     x < (this->getDrawableWidth()-SLIDER_MARGIN_RIGHT) &&
                     y > (this->getDrawableHeight() - SLIDER_HEIGHT)/2 &&
                     y < (this->getDrawableHeight() + SLIDER_HEIGHT)/2 ) {
-                tft->pushColor(this->convert2rgb565(SLIDER_COLOR));
+                if (highlightValue && x < value_x) {
+                    tft->pushColor(Color32Bit(SLIDER_KNOB_COLOR).get16Bit());
+                } else {
+                    tft->pushColor(Color32Bit(SLIDER_COLOR).get16Bit());
+                }
             } else {
                 tft->pushColor(bgColor);
             }
@@ -155,7 +164,7 @@ bool SliderCanvas::draw() {
 }
 
 uint16_t SliderCanvas::drawKnob(uint16_t x, uint16_t y, uint16_t bgColor) {
-    uint16_t knobColor = (this->getDisabled()?this->convert2rgb565(0x919191):this->convert2rgb565(SLIDER_KNOB_COLOR));
+    uint16_t knobColor = (this->getDisabled()?Color32Bit(0x919191).get16Bit():Color32Bit(SLIDER_KNOB_COLOR).get16Bit());
     if (!this->isValueInvalid()) {
         uint16_t circle_x = SLIDER_MARGIN_LEFT +
             + ((this->getValue() - this->getMin())*
@@ -198,7 +207,7 @@ void SliderCanvas::onValueChange(SliderCanvasValueChangeCallback callback) {
     onValueChangeCallback = callback;
 }
 
-void SliderCanvas::setMin(int16_t min) {
+void SliderCanvas::setMin(int32_t min) {
     if (touched)
         return;
     invalidateIfNotEqual(this->min, min);
@@ -207,7 +216,7 @@ void SliderCanvas::setMin(int16_t min) {
     }
 }
 
-void SliderCanvas::setMax(int16_t max) {
+void SliderCanvas::setMax(int32_t max) {
     if (touched)
         return;
     invalidateIfNotEqual(this->max, max);
@@ -216,11 +225,11 @@ void SliderCanvas::setMax(int16_t max) {
     }
 }
 
-void SliderCanvas::setStep(int16_t step) {
+void SliderCanvas::setStep(int32_t step) {
     invalidateIfNotEqual(this->step, step);
 }
 
-void SliderCanvas::setValue(int16_t value) {
+void SliderCanvas::setValue(int32_t value) {
     if (touched)
         return;
     invalidateIfNotEqual(this->value, value);
@@ -235,19 +244,19 @@ void SliderCanvas::setIcon(String icon) {
     invalidateIfNotEqual(this->icon, icon);
 }
 
-int16_t SliderCanvas::getMin() {
+int32_t SliderCanvas::getMin() {
     return this->min;
 }
 
-int16_t SliderCanvas::getMax() {
+int32_t SliderCanvas::getMax() {
     return this->max;
 }
 
-int16_t SliderCanvas::getStep() {
+int32_t SliderCanvas::getStep() {
     return this->step;
 }
 
-int16_t SliderCanvas::getValue() {
+int32_t SliderCanvas::getValue() {
     return this->value;
 }
 
@@ -278,4 +287,20 @@ void SliderCanvas::invalidateValue() {
 
 bool SliderCanvas::isValueInvalid() {
     return this->invalidValue;
+}
+
+void SliderCanvas::setViewOnly(bool viewOnly) {
+    this->viewOnly = viewOnly;
+} 
+
+bool SliderCanvas::isViewOnly() {
+    return viewOnly;
+}
+
+void SliderCanvas::setHighlightValue(bool highlight) {
+    invalidateIfNotEqual(this->highlightValue, highlight);
+}
+
+bool SliderCanvas::isValueHightlighted() {
+    return this->highlightValue;
 }

@@ -274,3 +274,28 @@ bool Support::bufferAlloc(uint8_t * &buffer) {
   }
   return true;
 }
+
+void Support::snprintfloat (char *s, size_t length, float num, int n) {
+    snprintf (s, length, "%.20g",num);
+    char *p;
+    int count;
+
+    p = strchr (s,'.');         // Find decimal point, if any.
+    if (p != NULL) {
+        count = n;              // Adjust for more or less decimals.
+        while (count >= 0) {    // Maximum decimals allowed.
+             count--;
+             if (*p == '\0')    // If there's less than desired.
+                 break;
+             p++;               // Next character.
+        }
+
+        *p-- = '\0';            // Truncate string.
+        while (*p == '0')       // Remove trailing zeros.
+            *p-- = '\0';
+
+        if (*p == '.') {        // If all decimals were zeros, remove ".".
+            *p = '\0';
+        }
+    }
+}

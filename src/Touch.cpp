@@ -28,7 +28,7 @@ uint32_t lastTappedTime = 0;
 uint32_t touch_period = 100;
 uint32_t releasedCounter = 0;
 uint32_t pressedCounter = 0;
-uint32_t releaseThresold = 200;
+uint32_t releaseThresold = 300;
 uint32_t longPressThreshold = 500;
 uint32_t doubleTapThreshold = 700;
 uint16_t pressedPointX = 0;
@@ -70,11 +70,19 @@ uint8_t touch_poll () {
       
       if (curr_time - lastPressedTime < doubleTapThreshold) {
         doubleTapped = 1;
+        eventData.startX = pressedPointX;
+        eventData.startY = pressedPointY;
+        eventData.endX = pressedPointX;
+        eventData.endY = pressedPointY;
+        callback(TouchActionDoublePressed, eventData);
+      } else {
+        lastTappedTime = curr_time;
+        eventData.startX = pressedPointX;
+        eventData.startY = pressedPointY;
+        eventData.endX = pressedPointX;
+        eventData.endY = pressedPointY;
+        callback(TouchActionPressed, eventData);
       }
-      lastTappedTime = curr_time;
-      //eventData.x = pressedPointX;
-      //eventData.y = pressedPointY;
-      //callback(TouchActionPress, eventData);
     } else {
       int16_t x_diff = ((int16_t)x - (int16_t)pressedPointX);
       if (x_diff < 0)
@@ -107,45 +115,44 @@ uint8_t touch_poll () {
       }
     }
     lastPressedTime = curr_time;
-    // Serial.print("X = "); Serial.print(x);
-    // Serial.print("\tY = "); Serial.print(y);
-    // Serial.print("\tPressure = "); Serial.println(p.z);
     return 1;
   } else {
     uint32_t curr_time = millis();
-    if ((curr_time - lastPressedTime > releaseThresold) && pressed) {
-      lastReleaseTime = curr_time;
-      eventData.startX = pressedPointX;
-      eventData.startY = pressedPointY;
-      eventData.endX = lastPointX;
-      eventData.endY = lastPointY;
-      if (doubleTapped) {
-        if (dragged) {
-          callback(TouchActionTapAndDragReleased, eventData);
-        } else if (longPressed) {
-          callback(TouchActionTapAndLongPressReleased, eventData);
-        } else {
-          callback(TouchActionDoubleTapped, eventData);
-        }
-      } else {
-        if (dragged) {
-          if (longPressed) {
-            callback(TouchActionLongPressedAndDraggedReleased, eventData);
+    if ((curr_time - lastPressedTime > releaseThresold)) {
+      if (pressed) {
+        pressed = 0;
+        lastReleaseTime = curr_time;
+        eventData.startX = pressedPointX;
+        eventData.startY = pressedPointY;
+        eventData.endX = lastPointX;
+        eventData.endY = lastPointY;
+        if (doubleTapped) {
+          if (dragged) {
+            callback(TouchActionTapAndDragReleased, eventData);
+          } else if (longPressed) {
+            callback(TouchActionTapAndLongPressReleased, eventData);
           } else {
-            callback(TouchActionDragReleased, eventData);
+            callback(TouchActionDoubleTapped, eventData);
           }
-        } else if (longPressed) {
-          callback(TouchActionLongPressReleased, eventData);
         } else {
-          callback(TouchActionTapped, eventData);
+          if (dragged) {
+            if (longPressed) {
+              callback(TouchActionLongPressedAndDraggedReleased, eventData);
+            } else {
+              callback(TouchActionDragReleased, eventData);
+            }
+          } else if (longPressed) {
+            callback(TouchActionLongPressReleased, eventData);
+          } else {
+            callback(TouchActionTapped, eventData);
+          }
         }
+        pressed = 0;
+        longPressed = 0;
+        dragged = 0;
+        longPressed = 0;
+        doubleTapped =0;
       }
-      pressed = 0;
-      longPressed = 0;
-      dragged = 0;
-      pressed = 0;
-      longPressed = 0;
-      doubleTapped =0;
     }
     return 0;
   }

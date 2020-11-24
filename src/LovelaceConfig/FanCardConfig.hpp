@@ -1,17 +1,16 @@
 #ifndef __FANCARDCONFIG_H__
 #define __FANCARDCONFIG_H__
 
-#include "Cards.hpp"
+#include "BaseEntityCardConfig.hpp"
 #include <string.h>
 
-class FanCardConfig : public BaseCardConfig {
+class FanCardConfig : public BaseEntityCardConfig {
   public:
+    FanCardConfig(const char * entity, const char * title, const char * icon, const char * rowIcon, bool state_color);
     FanCardConfig(const char * entity, const char * title, const char * icon, bool state_color);
     FanCardConfig(const char * entity);
-    char * getEntityId();
-    bool getStateColor();
-  protected:
-    char entity[40];
-    uint8_t state_color;
+
+    static constexpr const char * TYPE = "fan";
 };
+
 #endif // __FANCARDCONFIG_H__

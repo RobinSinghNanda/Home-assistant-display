@@ -4,6 +4,8 @@
 #include "Canvas.hpp"
 #include <Arduino.h>
 
+#define SLIDER_CANVAS_MIN_HEIGHT 40
+
 #define SLIDER_MARGIN_LEFT 12
 #define SLIDER_MARGIN_RIGHT 12
 #define SLIDER_RADIUS 5
@@ -20,43 +22,51 @@
 
 class SliderCanvas;
 
-typedef std::function<void(SliderCanvas*, int16_t, int16_t)> SliderCanvasValueChangeCallback;
+typedef std::function<void(SliderCanvas*, int32_t, int32_t)> SliderCanvasValueChangeCallback;
 
 class SliderCanvas : public Canvas{
     public:
       SliderCanvas(Canvas * canvas, uint16_t id);
-      void setMin(int16_t min);
-      void setMax(int16_t max);
-      void setStep(int16_t step);
-      void setValue(int16_t value);
+
+      static constexpr uint16_t HEIGHT = 40;
+      void setMin(int32_t min);
+      void setMax(int32_t max);
+      void setStep(int32_t step);
+      void setValue(int32_t value);
       void setName(String name);
       void setIcon(String icon);
-      int16_t getMin();
-      int16_t getMax();
-      int16_t getStep();
-      int16_t getValue();
+      int32_t getMin();
+      int32_t getMax();
+      int32_t getStep();
+      int32_t getValue();
       String getName();
       String getIcon();
       bool getTouched();
       void setDisabled(bool disabled);
       bool getDisabled();
+      void setViewOnly(bool viewOnly);
+      bool isViewOnly();
       void invalidateValue();
       bool isValueInvalid();
+      void setHighlightValue(bool highlight);
+      bool isValueHightlighted();
       uint16_t drawKnob(uint16_t x, uint16_t y, uint16_t bgColor);
       void onValueChange(SliderCanvasValueChangeCallback callback);
     protected:
       bool beingDragged = false;
       bool disabled;
-      int16_t min;
-      int16_t max;
-      int16_t step;
-      int16_t value;
+      bool viewOnly = false;
+      bool highlightValue = false;
+      int32_t min;
+      int32_t max;
+      int32_t step;
+      int32_t value;
       bool invalidValue;
       String name;
       String icon;
       bool touched = 0;
-      int16_t prevValue = 0;
-      int16_t prevDragValue = 0;
+      int32_t prevValue = 0;
+      int32_t prevDragValue = 0;
       uint16_t slideAnywhere = 0;
       uint16_t knob_color;
       uint16_t slider_color;

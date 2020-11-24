@@ -7,6 +7,7 @@
 #include "Support.hpp"
 #include "TFT_LCD.h"
 #include "GlobalParams.hpp"
+#include "LcdTheme.hpp"
 
 class Settings;
 extern Settings settings;
@@ -33,39 +34,6 @@ typedef union {
 struct WifiCredential {
     char ssid[WIFI_MAX_SSID_SIZE+1];
     char password[WIFI_MAX_PASSWORD_SIZE+1];
-};
-
-union Color {
-    uint32_t color;
-    struct {
-        uint8_t blue;
-        uint8_t green;
-        uint8_t red;
-        uint8_t alpha;
-    };
-    inline uint16_t getRGB656() {
-        return (((red & 0b11111000)<<8) + ((green & 0b11111100)<<3)+(blue>>3));
-    }
-};
-
-
-struct LcdTheme {
-    Color colorBodyBackground;
-    Color colorBodyText;
-    Color colorHeaderBackground;
-    Color colorHeaderText;
-    Color colorHeaderIcon;
-    Color colorPageIndicator;
-    Color colorPageIndicatorSelected;
-    Color colorScreenSaverBackground;
-    Color colorScreenSaverText;
-    Color colorScreenSaverHeaderIcon;
-    Color colorEntityIcon;
-    Color colorEntityIconUnavailable;
-    Color colorEntityIconEnabled;
-    Color colorSwitchSecondary;
-    Color colorSwitchSurface;
-    Color colorSwitchOnSurface;
 };
 
 struct WebTheme {

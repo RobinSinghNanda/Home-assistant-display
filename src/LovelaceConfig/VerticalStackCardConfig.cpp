@@ -1,11 +1,12 @@
 #include "VerticalStackCardConfig.hpp"
 
-VerticalStackCardConfig::VerticalStackCardConfig() : BaseCardConfig(PAGE_TYPE_VERTICAL_STACK) {
+VerticalStackCardConfig::VerticalStackCardConfig() :
+    VerticalStackCardConfig("", "") {
 
 }
 
-VerticalStackCardConfig::VerticalStackCardConfig(const char * title, const char * icon) : BaseCardConfig(PAGE_TYPE_VERTICAL_STACK, title, icon) {
-
+VerticalStackCardConfig::VerticalStackCardConfig(const char * title, const char * icon) :
+    BaseCardConfig(TYPE, title, icon) {
 }
 
 

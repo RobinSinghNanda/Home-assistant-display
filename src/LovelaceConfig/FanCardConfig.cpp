@@ -1,21 +1,13 @@
 #include "FanCardConfig.hpp"
 
-FanCardConfig::FanCardConfig(const char * entity, const char * title, const char * icon, bool state_color) : BaseCardConfig(PAGE_TYPE_FAN) {
-    strlcpy(this->entity, entity, sizeof(this->entity));
-    strlcpy(this->title, title, sizeof(this->title));
-    strlcpy(this->icon, icon, sizeof(this->icon));
-    strlcpy(this->type, PAGE_TYPE_FAN, sizeof(this->type));
-    this->state_color = state_color;
+FanCardConfig::FanCardConfig(const char * entity, const char * title, const char * icon, const char * rowIcon, bool state_color) :
+    BaseEntityCardConfig(TYPE, entity, title, title, icon, rowIcon, state_color) {
 }
 
-FanCardConfig::FanCardConfig(const char * entity) {
-    FanCardConfig(entity, "", "", 0);
+FanCardConfig::FanCardConfig(const char * entity, const char * title, const char * icon, bool state_color) :
+    FanCardConfig(entity, title, icon, icon, state_color) {
 }
 
-char * FanCardConfig::getEntityId() {
-    return entity;
-}
-
-bool FanCardConfig::getStateColor() {
-    return state_color;
+FanCardConfig::FanCardConfig(const char * entity) :
+    FanCardConfig(entity, "", "", 0) {
 }

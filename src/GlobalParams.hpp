@@ -31,7 +31,6 @@ class GlobalParams {
         bool timeInit = 0;
         bool timeSet = 0;
         bool screenRebuild = true;
-        bool screenRedraw = true;
         bool screenDarkMode = true;
         bool screenBottomHeader = false;
         ScreenOrientation screenRotation = ScreenLandscape;
@@ -80,8 +79,6 @@ class GlobalParams {
         inline void incrUptime();
         inline void setScreenRebuild(bool rebuild);
         inline bool getScreenRebuild();
-        inline void setScreenRedraw(bool redraw);
-        inline bool getScreenRedraw();
         inline void setScreenPageType(ScreenPageType type);
         inline ScreenPageType getScreenPageType();
         inline void setScreenPageNumber(uint8_t pageNum);
@@ -222,14 +219,6 @@ void GlobalParams::setScreenRebuild(bool rebuild) {
 
 bool GlobalParams::getScreenRebuild() {
     return this->screenRebuild;
-}
-
-void GlobalParams::setScreenRedraw(bool redraw) {
-    this->screenRedraw = redraw;
-}
-
-bool GlobalParams::getScreenRedraw() {
-    return this->screenRedraw;
 }
 
 void GlobalParams::setScreenPageType(ScreenPageType type) {

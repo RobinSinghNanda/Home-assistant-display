@@ -1,4 +1,5 @@
 #include "DigitalClockCanvas.hpp"
+#include "Fonts.hpp"
 
 DigitalClockCanvas::DigitalClockCanvas(Canvas * canvas, uint16_t id) : Canvas(canvas, id) {
     this->minute = 0;
@@ -8,11 +9,11 @@ DigitalClockCanvas::DigitalClockCanvas(Canvas * canvas, uint16_t id) : Canvas(ca
     this->displayDate = true;
     this->blink = true;
     tft->setTextColor(this->fgColor, this->bgColor);
-    tft->loadFont("Roboto-Medium");
+    tft->loadFont(FONT_MEDIUM_60);
     this->digitWidth = tft->textWidth("4");
     this->colonWidth = tft->textWidth(":");
     this->digitHeight = tft->fontHeight();
-    tft->loadFont("Roboto-MediumPlus");
+    tft->loadFont(FONT_MEDIUM_120);
     this->digitWidthPlus = tft->textWidth("4");
     this->colonWidthPlus = tft->textWidth(":");
     this->digitHeightPlus = tft->fontHeight();
@@ -126,9 +127,9 @@ bool DigitalClockCanvas::draw() {
         digitWidth = digitWidthPlus;
         textSpacing = colonWidth>>1;
         colonOffset=2;
-        tft->loadFont("Roboto-MediumPlus");
+        tft->loadFont(FONT_MEDIUM_120);
     } else {
-        tft->loadFont("Roboto-Medium");
+        tft->loadFont(FONT_MEDIUM_60);
     }
     uint16_t textWidth = 4*digitWidth+colonWidth+2*textSpacing;
     uint16_t textHeight = digitHeight;
@@ -203,7 +204,7 @@ bool DigitalClockCanvas::draw() {
         }
     }
     if (displayDate) {
-        tft->loadFont("Roboto-Regular24");
+        tft->loadFont(FONT_REGULAR_24);
         uint16_t dateWidth = tft->textWidth(this->dateString);
         tft->setCursor(getCursorX(dateWidth), getCursorY(textHeight)+10+digitHeight);
         tft->print(dateString);

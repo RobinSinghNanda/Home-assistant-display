@@ -45,10 +45,6 @@ bool screenServer(String filename)
 
   delay(0); // Equivalent to yield()
 
-  //Serial.println();
-  //if (result) Serial.println(F("Screen dump passed :-)"));
-  //else        Serial.println(F("Screen dump failed :-("));
-
   return result;
 }
 

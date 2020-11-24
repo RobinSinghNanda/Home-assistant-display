@@ -6,7 +6,7 @@
 
 #define PAGE_SELECTOR_SELECTED_RAD  3
 #define PAGE_SELECTOR_RAD 3
-#define PAGE_SELECTOR_SELECTED_COLOR convert2rgb565(0x03a9f4)
+#define PAGE_SELECTOR_SELECTED_COLOR Color32Bit(0x03a9f4).get16Bit()
 
 
 
@@ -39,7 +39,6 @@ class PageSelectorCanvas : public Canvas {
       bool limitStep = 0;
       virtual bool draw();
       PageSelectorCanvasStateChangeCallback onValueChangeCallback;
-      bool onTouchEventCallback (TouchEvent event, TouchEventData eventData);
       void fillCircle (uint16_t x, uint16_t y, uint16_t color);
 };
 

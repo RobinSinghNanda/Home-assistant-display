@@ -15,6 +15,7 @@
 #include "TFT_LCD.h"
 #include "Touch.h"
 #include "WebServer.hpp"
+#include "HomeAssistant/HomeAssistantManager.hpp"
 
 #define SCREEN_SERVER_ENABLE 1
 
@@ -28,8 +29,8 @@ void lcdTaskCode( void * pvParameters);
 void touchTaskCode( void * pvParameters);
 void WifiManager_start();
 #ifndef FIRMWARE_MINIMAL
-void homeAssistantEventCallback (HomeAssistant &assistant, HomeAssistantEvent event);
-void homeAssistantSyncMessageCallback (HomeAssistant &assistant, String entity_id, HomeAssistantEntity entity, HomeAssistantEntity  prevEntity);
+void homeAssistantEventCallback (HomeAssistantClient &assistant, HomeAssistantEvent event);
+void homeAssistantSyncMessageCallback (HomeAssistantClient &assistant, String entity_id, HomeAssistantEntity entity, HomeAssistantEntity  prevEntity);
 void homeAssistantTaskCode(void * pvParameters);
 void getSettingsScreenConfig(ScreenConfig * settingsScreenConfig);
 void updateEntityStates(bool forceSync = false);

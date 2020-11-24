@@ -1,11 +1,11 @@
 #include "HorizontalStackCardConfig.hpp"
 
-HorizontalStackCardConfig::HorizontalStackCardConfig() : BaseCardConfig(PAGE_TYPE_HORIZONTAL_STACK) {
-
+HorizontalStackCardConfig::HorizontalStackCardConfig() :
+    HorizontalStackCardConfig("", "") {
 }
 
-HorizontalStackCardConfig::HorizontalStackCardConfig(const char * title, const char * icon) : BaseCardConfig(PAGE_TYPE_HORIZONTAL_STACK, title, icon) {
-
+HorizontalStackCardConfig::HorizontalStackCardConfig(const char * title, const char * icon) :
+    BaseCardConfig(TYPE, title, icon) {
 }
 
 
