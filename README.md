@@ -23,7 +23,12 @@ A Home Assistant display based on ESP32. It uses Home Assistant's official Webso
 2. [light](https://www.home-assistant.io/lovelace/light/)
 3. [horizontal-stack](https://www.home-assistant.io/lovelace/horizontal-stack/)
 4. [vertical-stack](https://www.home-assistant.io/lovelace/vertical-stack/)
-5. [custom:paper-buttons-row](https://github.com/jcwillox/lovelace-paper-buttons-row)
+5. [weather-forecast](https://www.home-assistant.io/lovelace/weather-forecast/)
+6. [thermostat](https://www.home-assistant.io/lovelace/thermostat/)
+7. [alarm-panel](https://www.home-assistant.io/lovelace/alarm-panel/)
+8. [media-control](https://www.home-assistant.io/lovelace/media-control/)
+9. [humidifier](https://www.home-assistant.io/lovelace/humidifier/)
+10. [custom:paper-buttons-row](https://github.com/jcwillox/lovelace-paper-buttons-row)
 
 ## Sample configuration file
 ```json
